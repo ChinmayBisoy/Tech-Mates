@@ -25,7 +25,7 @@ transporter.verify((error, success) => {
 const sendEmail = async (to, subject, text, html) => {
   try {
     const info = await transporter.sendMail({
-      from: `"Backend Ledger" <${process.env.EMAIL_USER}>`, // sender address
+      from: `"TechMates" <${process.env.EMAIL_USER}>`, // sender address
       to, // list of receivers
       subject, // Subject line
       text, // plain text body
@@ -41,10 +41,23 @@ const sendEmail = async (to, subject, text, html) => {
 };
 
 
-async function sendRegistrationEmail(userEmail,name){
-    const subject = 'Welcome to Backend Ledger!';
-    const text = `Hi ${name},\n\nThank you for registering with Backend Ledger! We're excited to have you on board.\n\nBest regards,\nThe Backend Ledger Team`;
-    const html = `<p>Hi ${name},</p><p>Thank you for registering with Backend Ledger! We're excited to have you on board.</p><p>Best regards,<br>The Backend Ledger Team</p>`;
+async function sendRegistrationEmail(userEmail, name, role = 'client') {
+  const normalizedRole = role === 'developer' ? 'developer' : 'client';
+    const subject = `Welcome to TechMates, ${name}!`;
+
+    const roleLine = normalizedRole === 'client'
+      ? 'Your client account is active. You can now post requirements, discover verified developers, and hire with confidence.'
+      : 'Your developer account is active. You can now build your profile, showcase your skills, and start getting client opportunities.';
+
+    const text = `Hi ${name},\n\nWelcome to TechMates!\n\n${roleLine}\n\nWe are excited to have you with us.\n\nBest regards,\nTeam TechMates`;
+
+    const html = `
+      <p>Hi ${name},</p>
+      <p>Welcome to <strong>TechMates</strong>!</p>
+      <p>${roleLine}</p>
+      <p>We are excited to have you with us.</p>
+      <p>Best regards,<br/>Team TechMates</p>
+    `;
 
     await sendEmail(userEmail, subject, text, html);
 } 

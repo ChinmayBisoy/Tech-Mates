@@ -4,7 +4,8 @@ const emailService = require('../services/email.service');
 
 async function userRegisterController(req, res){
     try{
-        const {email, name, password} = req.body;
+        // FIX: Extract 'role' from req.body
+        const {email, name, password, role} = req.body;
 
         // Validation
         if(!email || !name || !password){
@@ -29,8 +30,8 @@ async function userRegisterController(req, res){
             });
         }
 
-        // Create and save new user
-        const newUser = new userModel({ email, name, password });
+        // FIX: Pass 'role' into the new userModel
+        const newUser = new userModel({ email, name, password, role });
         const user = await newUser.save();
 
         // Generate JWT token
@@ -50,7 +51,7 @@ async function userRegisterController(req, res){
         // Send registration email after successful user creation.
         // Do not fail registration if email delivery fails.
         try {
-            await emailService.sendRegistrationEmail(user.email, user.name);
+            await emailService.sendRegistrationEmail(user.email, user.name, req.body.role);
         } catch (emailError) {
             console.error('Registration email failed:', emailError.message);
         }
@@ -61,7 +62,8 @@ async function userRegisterController(req, res){
             user: {
                 id: user._id,
                 email: user.email,
-                name: user.name
+                name: user.name,
+                role: user.role // Optional: Good practice to return the saved role
             }
         });
 
@@ -112,18 +114,24 @@ async function userLoginController(req, res){
             });
         }
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { id: user._id, email: user.email },
+        // Generate access and refresh tokens
+        const accessToken = jwt.sign(
+            { _id: user._id, email: user.email, role: user.role },
             process.env.JWT_SECRET || 'your_jwt_secret_key',
+            { expiresIn: '15m' }
+        );
+
+        const refreshToken = jwt.sign(
+            { _id: user._id, email: user.email, role: user.role },
+            process.env.REFRESH_TOKEN || process.env.JWT_SECRET || 'your_refresh_secret_key',
             { expiresIn: '7d' }
         );
 
-        // Set token in httpOnly cookie
-        res.cookie('token', token, {
+        // Keep access token cookie for existing auth flow compatibility
+        res.cookie('token', accessToken, {
             httpOnly: true,
             secure: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            maxAge: 15 * 60 * 1000 // 15 minutes
         });
 
         return res.status(200).json({
@@ -132,8 +140,11 @@ async function userLoginController(req, res){
             user: {
                 id: user._id,
                 email: user.email,
-                name: user.name
-            }
+                name: user.name,
+                role: user.role // Optional: Good practice to return the role on login too
+            },
+            accessToken,
+            refreshToken
         });
 
     } catch(error){
