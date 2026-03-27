@@ -7,6 +7,12 @@ const authRouter = require('./routes/auth.routes');
 const requirementRouter = require('./routes/requirement.routes');
 const proposalRouter = require('./routes/proposal.routes');
 const contractRouter = require('./routes/contract.routes');
+const userRouter = require('./routes/user.routes');
+const reviewRouter = require('./routes/review.routes');
+const walletRouter = require('./routes/wallet.routes');
+const listingRouter = require('./routes/listing.routes');
+const adminRouter = require('./routes/admin.routes');
+const verificationRouter = require('./routes/verification.routes');
 const errorHandler = require('./middleware/error.middleware');
 
 const app = express();
@@ -30,6 +36,12 @@ app.use('/api/auth', authRouter);
 app.use('/api/requirements', requirementRouter);
 app.use('/api/proposals', proposalRouter);
 app.use('/api/contracts', contractRouter);
+app.use('/api/users', userRouter);
+app.use('/api/reviews', reviewRouter);
+app.use('/api/wallet', walletRouter);
+app.use('/api/listings', listingRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/verification', verificationRouter);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

@@ -63,8 +63,9 @@ async function userRegisterController(req, res){
                 id: user._id,
                 email: user.email,
                 name: user.name,
-                role: user.role // Optional: Good practice to return the saved role
-            }
+                role: user.role
+            },
+            token: token
         });
 
     } catch(error){
@@ -141,10 +142,10 @@ async function userLoginController(req, res){
                 id: user._id,
                 email: user.email,
                 name: user.name,
-                role: user.role // Optional: Good practice to return the role on login too
+                role: user.role
             },
-            accessToken,
-            refreshToken
+            token: accessToken,
+            refreshToken: refreshToken
         });
 
     } catch(error){
@@ -156,7 +157,216 @@ async function userLoginController(req, res){
     }
 }
 
+async function refreshTokenController(req, res) {
+    try {
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            return res.status(400).json({
+                success: false,
+                message: "Refresh token is required"
+            });
+        }
+
+        // Verify refresh token
+        const decoded = jwt.verify(
+            refreshToken,
+            process.env.REFRESH_TOKEN || process.env.JWT_SECRET || 'your_refresh_secret_key'
+        );
+
+        // Find user
+        const user = await userModel.findById(decoded._id);
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Generate new access token
+        const newAccessToken = jwt.sign(
+            { _id: user._id, email: user.email, role: user.role },
+            process.env.JWT_SECRET || 'your_jwt_secret_key',
+            { expiresIn: '15m' }
+        );
+
+        return res.status(200).json({
+            success: true,
+            accessToken: newAccessToken,
+            token: newAccessToken
+        });
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({
+                success: false,
+                message: "Refresh token expired"
+            });
+        }
+        res.status(401).json({
+            success: false,
+            message: "Invalid refresh token"
+        });
+    }
+}
+
+async function logoutController(req, res) {
+    try {
+        res.clearCookie('token');
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+}
+
+async function getMeController(req, res) {
+    try {
+        const user = await userModel.findById(req.user._id).select('-password -refreshToken');
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            user
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+}
+
+async function forgotPasswordController(req, res) {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Email is required"
+            });
+        }
+
+        const user = await userModel.findOne({ email });
+
+        if (!user) {
+            // Don't reveal if email exists for security
+            return res.status(200).json({
+                success: true,
+                message: "If an account exists with this email, you will receive password reset instructions"
+            });
+        }
+
+        // Generate reset token
+        const resetToken = jwt.sign(
+            { _id: user._id, email: user.email },
+            process.env.JWT_SECRET || 'your_jwt_secret_key',
+            { expiresIn: '1h' }
+        );
+
+        // Send reset email
+        try {
+            await emailService.sendPasswordResetEmail(user.email, user.name, resetToken);
+        } catch (emailError) {
+            console.error('Password reset email failed:', emailError.message);
+            return res.status(500).json({
+                success: false,
+                message: "Failed to send reset email"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "If an account exists with this email, you will receive password reset instructions"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+}
+
+async function resetPasswordController(req, res) {
+    try {
+        const { token } = req.params;
+        const { password, confirmPassword } = req.body;
+
+        if (!password || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Password and confirmation are required"
+            });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Passwords do not match"
+            });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters long"
+            });
+        }
+
+        // Verify token
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET || 'your_jwt_secret_key'
+        );
+
+        const user = await userModel.findById(decoded._id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Update password
+        user.password = password;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successfully"
+        });
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({
+                success: false,
+                message: "Reset token has expired"
+            });
+        }
+        res.status(400).json({
+            success: false,
+            message: "Invalid reset token"
+        });
+    }
+}
+
 module.exports = {
     userRegisterController,
-    userLoginController
+    userLoginController,
+    refreshTokenController,
+    logoutController,
+    getMeController,
+    forgotPasswordController,
+    resetPasswordController
 }
