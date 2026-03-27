@@ -18,6 +18,8 @@ const PostListing = lazy(() => import('@/pages/projects/PostListing'))
 const PurchaseSuccess = lazy(() => import('@/pages/purchase/PurchaseSuccess'))
 
 // Lazy imports for Phase 7 Dashboard pages
+const ClientDashboard = lazy(() => import('@/pages/dashboard/ClientDashboard'))
+const DeveloperDashboard = lazy(() => import('@/pages/dashboard/DeveloperDashboard'))
 const MyPurchases = lazy(() => import('@/pages/dashboard/MyPurchases'))
 const MyListings = lazy(() => import('@/pages/dashboard/MyListings'))
 const WishlistPage = lazy(() => import('@/pages/dashboard/Wishlist'))
@@ -129,17 +131,21 @@ const router = createBrowserRouter([
       {
         path: 'user/dashboard',
         element: (
-          <RoleRoute allowedRoles={['client']}>
-            <StubPage title="User Dashboard" />
-          </RoleRoute>
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <ClientDashboard />
+            </Suspense>
+          </ProtectedRoute>
         ),
       },
       {
         path: 'developer/dashboard',
         element: (
-          <RoleRoute allowedRoles={['developer']}>
-            <StubPage title="Developer Dashboard" />
-          </RoleRoute>
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <DeveloperDashboard />
+            </Suspense>
+          </ProtectedRoute>
         ),
       },
       {
