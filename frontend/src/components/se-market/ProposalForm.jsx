@@ -61,7 +61,7 @@ export function ProposalForm({ requirementId, onSuccess, requirement }) {
             type="number"
             id="price"
             {...register('price', { valueAsNumber: true })}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
             placeholder="50000"
           />
         </div>
@@ -84,7 +84,7 @@ export function ProposalForm({ requirementId, onSuccess, requirement }) {
           {...register('deliveryDays', { valueAsNumber: true })}
           min="1"
           max="365"
-          className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+          className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
           placeholder="7"
         />
         {errors.deliveryDays && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.deliveryDays.message}</p>}
@@ -100,7 +100,7 @@ export function ProposalForm({ requirementId, onSuccess, requirement }) {
           {...register('coverLetter')}
           rows={5}
           maxLength={1000}
-          className="mt-1 w-full resize-none rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+          className="mt-1 w-full resize-none rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
           placeholder="Tell the client why you're the perfect fit for this project..."
         />
         {errors.coverLetter && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.coverLetter.message}</p>}

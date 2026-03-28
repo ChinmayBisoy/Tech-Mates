@@ -62,5 +62,6 @@ async function sendRegistrationEmail(userEmail, name, role = 'client') {
     await sendEmail(userEmail, subject, text, html);
 } 
 module.exports = {
-    sendRegistrationEmail
+  sendEmail,
+  sendRegistrationEmail
 }

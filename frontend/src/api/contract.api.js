@@ -24,8 +24,9 @@ const getMyContracts = async (page = 1, limit = 10) => {
 
 // Fund a milestone
 const fundMilestone = async (contractId, milestoneId) => {
-  const response = await instance.put(
-    `/contracts/${contractId}/milestone/${milestoneId}/fund`
+  const response = await instance.post(
+    `/payments/fund-milestone`,
+    { contractId, milestoneId }
   )
   return response.data
 }
@@ -67,8 +68,9 @@ const disputeMilestone = async (contractId, milestoneId, data) => {
 
 // Release milestone payment (after acceptance)
 const releaseMilestonePayment = async (contractId, milestoneId) => {
-  const response = await instance.put(
-    `/contracts/${contractId}/milestone/${milestoneId}/release`
+  const response = await instance.post(
+    `/payments/release-milestone`,
+    { contractId, milestoneId }
   )
   return response.data
 }

@@ -28,7 +28,7 @@ export default function BrowseDevelopers() {
       });
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/users/browse/developers?${params}`
+        `${import.meta.env.VITE_API_URL}/users/search?${params}`
       );
 
       setDevelopers(response.data.data);
@@ -84,7 +84,7 @@ export default function BrowseDevelopers() {
                 placeholder="Search by name, skills, or bio..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
 
@@ -96,7 +96,7 @@ export default function BrowseDevelopers() {
                   setSelectedTier(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
                 <option value="">All Tiers</option>
                 <option value="elite">Elite</option>

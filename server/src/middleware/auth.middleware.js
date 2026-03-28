@@ -25,6 +25,14 @@ const verifyJWT = async (req, res, next) => {
       throw new ApiError(401, 'User not found');
     }
 
+    if (user.isDeleted) {
+      throw new ApiError(401, 'Account not found');
+    }
+
+    if (user.isBanned) {
+      throw new ApiError(403, `Account suspended: ${user.bannedReason || 'Policy violation'}`);
+    }
+
     req.user = user;
     next();
   } catch (err) {

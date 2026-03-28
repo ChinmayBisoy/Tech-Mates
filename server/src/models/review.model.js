@@ -15,6 +15,21 @@ const reviewSchema = new mongoose.Schema(
     contractId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Contract',
+      default: null,
+    },
+    purchaseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Purchase',
+      default: null,
+    },
+    listingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ProjectListing',
+      default: null,
+    },
+    type: {
+      type: String,
+      enum: ['contract_review', 'purchase_review'],
       required: true,
     },
     rating: {
@@ -23,30 +38,13 @@ const reviewSchema = new mongoose.Schema(
       min: 1,
       max: 5,
     },
-    communication: {
-      type: Number,
-      min: 1,
-      max: 5,
-    },
-    deliveryQuality: {
-      type: Number,
-      min: 1,
-      max: 5,
-    },
-    professionalism: {
-      type: Number,
-      min: 1,
-      max: 5,
-    },
     comment: {
       type: String,
+      required: true,
+      minlength: 10,
       maxlength: 1000,
     },
-    isAnonymous: {
-      type: Boolean,
-      default: false,
-    },
-    verified: {
+    isPublic: {
       type: Boolean,
       default: true,
     },
@@ -54,7 +52,25 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Ensure one review per reviewer per reviewee per contract
-reviewSchema.index({ reviewerId: 1, revieweeId: 1, contractId: 1 }, { unique: true });
+reviewSchema.index(
+  { reviewerId: 1, contractId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { contractId: { $exists: true, $ne: null } },
+  }
+);
+
+reviewSchema.index(
+  { reviewerId: 1, purchaseId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { purchaseId: { $exists: true, $ne: null } },
+  }
+);
+
+reviewSchema.index({ revieweeId: 1 });
+reviewSchema.index({ listingId: 1 });
+reviewSchema.index({ type: 1 });
+reviewSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Review', reviewSchema);

@@ -29,7 +29,16 @@ instance.interceptors.request.use((config) => {
 })
 
 instance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Unwrap ApiResponse wrapper: extract .data from { statusCode, data, message, success, pagination? }
+    if (response.data && response.data.data !== undefined) {
+      return {
+        ...response,
+        data: response.data.data,
+      }
+    }
+    return response
+  },
   (error) => {
     const originalRequest = error.config
 

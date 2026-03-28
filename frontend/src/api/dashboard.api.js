@@ -75,35 +75,19 @@ export const myListingsAPI = {
     return response.data;
   },
 
-  // Get listing stats (purchases, revenue, etc)
-  getListingStats: async (listingId) => {
-    const response = await axios.get(`/listings/${listingId}/stats`);
-    return response.data;
-  },
-
-  // Get all listings stats
-  getAllListingsStats: async () => {
-    const response = await axios.get('/listings/stats');
-    return response.data;
-  },
+  // TODO: Listing stats endpoints not yet implemented
+  // getListingStats: async (listingId) => { ... }
+  // getAllListingsStats: async () => { ... }
 };
 
 /**
  * Review & Rating API
  */
 export const reviewAPI = {
-  // Get reviews for listing
+  // Get reviews for listing (via reviews API, not listings)
   getListingReviews: async (listingId, page = 1, limit = 10, sort = 'recent') => {
-    const response = await axios.get(`/listings/${listingId}/reviews`, {
+    const response = await axios.get(`/reviews/listing/${listingId}`, {
       params: { page, limit, sort },
-    });
-    return response.data;
-  },
-
-  // Get reviews by user
-  getMyReviews: async (page = 1, limit = 12) => {
-    const response = await axios.get('/reviews/my', {
-      params: { page, limit },
     });
     return response.data;
   },
@@ -114,23 +98,8 @@ export const reviewAPI = {
     return response.data;
   },
 
-  // Update review
-  updateReview: async (reviewId, data) => {
-    const response = await axios.put(`/reviews/${reviewId}`, data);
-    return response.data;
-  },
-
-  // Delete review
-  deleteReview: async (reviewId) => {
-    const response = await axios.delete(`/reviews/${reviewId}`);
-    return response.data;
-  },
-
-  // Get review statistics
-  getReviewStats: async (listingId) => {
-    const response = await axios.get(`/listings/${listingId}/reviews/stats`);
-    return response.data;
-  },
+  // TODO: These endpoints are not yet implemented on backend
+  // getMyReviews, updateReview, deleteReview, getReviewStats
 };
 
 /**
@@ -157,66 +126,60 @@ export const wishlistAPI = {
     return response.data;
   },
 
-  // Check if in wishlist
-  isInWishlist: async (listingId) => {
-    const response = await axios.get(`/wishlist/check/${listingId}`);
-    return response.data;
-  },
-
-  // Clear wishlist
-  clearWishlist: async () => {
-    const response = await axios.delete('/wishlist');
-    return response.data;
-  },
+  // TODO: These endpoints are not yet implemented
+  // isInWishlist, clearWishlist
 };
 
 /**
  * Seller Analytics API
+ * Uses admin analytics endpoints when available, with safe fallbacks for non-admin users.
  */
 export const analyticsAPI = {
-  // Get seller dashboard stats
-  getDashboardStats: async (timeRange = '30d') => {
-    const response = await axios.get('/analytics/dashboard', {
-      params: { timeRange },
-    });
-    return response.data;
+  getDashboardStats: async () => {
+    try {
+      const response = await axios.get('/admin/analytics', {
+        params: { range: 'today' },
+      });
+
+      const data = response.data || {};
+      const summary = data.summary || {};
+
+      return {
+        totalRevenue: summary.revenue || 0,
+        revenueChange: 0,
+        totalSales: summary.totalPurchases || 0,
+        salesChange: 0,
+        averageRating: summary.avgRating || 0,
+        ratingChange: 0,
+        totalCustomers: summary.totalUsers || 0,
+        customersChange: 0,
+      };
+    } catch (_error) {
+      return {
+        totalRevenue: 0,
+        revenueChange: 0,
+        totalSales: 0,
+        salesChange: 0,
+        averageRating: 0,
+        ratingChange: 0,
+        totalCustomers: 0,
+        customersChange: 0,
+      };
+    }
   },
 
-  // Get revenue data
-  getRevenueData: async (timeRange = '30d') => {
-    const response = await axios.get('/analytics/revenue', {
-      params: { timeRange },
-    });
-    return response.data;
+  getRevenueData: async () => {
+    try {
+      const response = await axios.get('/admin/analytics/revenue');
+      return response.data || { chart: [] };
+    } catch (_error) {
+      return { chart: [] };
+    }
   },
 
-  // Get sales data
-  getSalesData: async (timeRange = '30d') => {
-    const response = await axios.get('/analytics/sales', {
-      params: { timeRange },
-    });
-    return response.data;
-  },
+  getSalesData: async () => ({ items: [], max: 0 }),
 
-  // Get top listings
-  getTopListings: async (limit = 5) => {
-    const response = await axios.get('/analytics/top-listings', {
-      params: { limit },
-    });
-    return response.data;
-  },
+  getTopListings: async () => ({ listings: [] }),
 
-  // Get customer feedback
-  getCustomerFeedback: async (page = 1, limit = 10) => {
-    const response = await axios.get('/analytics/feedback', {
-      params: { page, limit },
-    });
-    return response.data;
-  },
-
-  // Get performance metrics
-  getPerformanceMetrics: async (listingId) => {
-    const response = await axios.get(`/analytics/listings/${listingId}/performance`);
-    return response.data;
-  },
+  getPerformanceMetrics: async () => ({}),
 };

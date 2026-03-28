@@ -79,7 +79,7 @@ export default function SettingsPage() {
             <select
               value={settings.profileVisibility}
               onChange={(e) => setSettings({ ...settings, profileVisibility: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             >
               <option value="public">Public (Everyone can see)</option>
               <option value="private">Private (Logged-in users only)</option>

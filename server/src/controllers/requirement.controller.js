@@ -4,8 +4,10 @@ const ApiResponse = require('../utils/ApiResponse');
 const requirementService = require('../services/requirement.service');
 const { requirementQuerySchema } = require('../validators/requirement.validator');
 
+const isClientRole = (role) => role === 'client' || role === 'user';
+
 const createRequirement = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can create requirements');
   }
 
@@ -50,7 +52,7 @@ const getRequirementById = asyncHandler(async (req, res) => {
 });
 
 const updateRequirement = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can update requirements');
   }
 
@@ -64,7 +66,7 @@ const updateRequirement = asyncHandler(async (req, res) => {
 });
 
 const deleteRequirement = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can delete requirements');
   }
 
@@ -74,7 +76,7 @@ const deleteRequirement = asyncHandler(async (req, res) => {
 });
 
 const closeRequirement = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can close requirements');
   }
 
@@ -84,7 +86,7 @@ const closeRequirement = asyncHandler(async (req, res) => {
 });
 
 const getMyRequirements = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can access their requirements');
   }
 

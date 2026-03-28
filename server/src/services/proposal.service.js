@@ -3,6 +3,7 @@ const Requirement = require('../models/requirement.model');
 const User = require('../models/user.model');
 const ApiError = require('../utils/ApiError');
 const { createContractFromProposal } = require('./contract.service');
+const notificationService = require('./notification.service');
 
 const normalizePagination = (pagination = {}) => {
   const parsedPage = Number.parseInt(pagination.page, 10);
@@ -248,6 +249,8 @@ const acceptProposal = async (proposalId, clientId) => {
   await requirement.save();
 
   const contract = await createContractFromProposal(proposal);
+
+  await notificationService.notifyProposalAccepted(proposal.developerId, proposal);
 
   return { proposal, contract };
 };

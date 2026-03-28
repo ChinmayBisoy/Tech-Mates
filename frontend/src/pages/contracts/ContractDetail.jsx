@@ -343,7 +343,7 @@ export default function ContractDetail() {
                     onChange={(e) => setWorkDetails({ ...workDetails, details: e.target.value })}
                     maxLength={1000}
                     rows={4}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
                     placeholder="Describe what you've delivered..."
                   />
                 </div>
@@ -356,7 +356,7 @@ export default function ContractDetail() {
                     type="text"
                     value={workDetails.deliverables}
                     onChange={(e) => setWorkDetails({ ...workDetails, deliverables: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
                     placeholder="e.g., Design mockups, Code repository link (comma-separated)"
                   />
                 </div>

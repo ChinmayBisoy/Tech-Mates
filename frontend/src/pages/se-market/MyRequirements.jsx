@@ -65,7 +65,7 @@ export default function MyRequirements() {
     },
   });
 
-  const requirements = requirementsQuery.data?.requirements || [];
+  const requirements = Array.isArray(requirementsQuery.data) ? requirementsQuery.data : [];
   const statusCounts = {
     open: requirements.filter((r) => r.status === 'open').length,
     closed: requirements.filter((r) => r.status === 'closed').length,

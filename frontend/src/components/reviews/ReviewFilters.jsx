@@ -52,7 +52,7 @@ export default function ReviewFilters({ onFilterChange = null, filters = {} }) {
                 type="checkbox"
                 checked={filters.rating?.includes(rating) || false}
                 onChange={() => handleRatingChange(rating)}
-                className="w-4 h-4 rounded bg-slate-700 border-slate-600 accent-blue-500"
+                className="w-4 h-4 rounded border-gray-300 bg-white text-primary checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:checked:bg-accent dark:checked:border-accent"
               />
               <span className="text-slate-300 text-sm">
                 {'⭐'.repeat(rating)} {rating} Star{rating !== 1 ? 's' : ''}
@@ -69,7 +69,7 @@ export default function ReviewFilters({ onFilterChange = null, filters = {} }) {
             type="checkbox"
             checked={filters.verifiedOnly || false}
             onChange={handleVerifiedChange}
-            className="w-4 h-4 rounded bg-slate-700 border-slate-600 accent-green-500"
+            className="w-4 h-4 rounded border-gray-300 bg-white text-primary checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:checked:bg-accent dark:checked:border-accent"
           />
           <span className="text-slate-300 text-sm">Verified Purchases Only</span>
         </label>
@@ -82,7 +82,7 @@ export default function ReviewFilters({ onFilterChange = null, filters = {} }) {
             type="checkbox"
             checked={filters.withPhotosOnly || false}
             onChange={handlePhotosChange}
-            className="w-4 h-4 rounded bg-slate-700 border-slate-600 accent-orange-500"
+            className="w-4 h-4 rounded border-gray-300 bg-white text-primary checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:checked:bg-accent dark:checked:border-accent"
           />
           <span className="text-slate-300 text-sm">With Photos</span>
         </label>

@@ -31,7 +31,7 @@ export default function MyListings() {
   });
 
   const listings = listingsQuery.data?.listings || [];
-  const totalPages = listingsQuery.data?.totalPages || 1;
+  const totalPages = listingsQuery.data?.pagination?.totalPages || 1;
 
   if (!user) {
     return (

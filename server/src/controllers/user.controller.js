@@ -2,176 +2,268 @@ const User = require('../models/user.model');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
+const cloudinary = require('cloudinary').v2;
+const Requirement = require('../models/requirement.model');
+const Proposal = require('../models/proposal.model');
+const Contract = require('../models/contract.model');
+const Purchase = require('../models/purchase.model');
+const adminService = require('../services/admin.service');
 
-const getUserProfile = asyncHandler(async (req, res) => {
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const getPublicProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id).select('-password -refreshToken');
-  
+
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
 
-  res.json(new ApiResponse(200, user, 'User profile fetched successfully'));
+  if (user.isDeleted || user.isBanned) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  res.json(new ApiResponse(200, user.toPublicProfile(), 'Public profile fetched successfully'));
+});
+
+const getMyProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select('-password -refreshToken');
+
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  if (user.isDeleted || user.isBanned) {
+    throw new ApiError(403, 'Account is not available');
+  }
+
+  res.json(new ApiResponse(200, user.toPublicProfile(), 'Profile fetched successfully'));
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
-  const allowedFields = ['name', 'bio', 'profilePhoto', 'location', 'skills'];
-  const updates = {};
+  const allowedFields = [
+    'name',
+    'bio',
+    'skills',
+    'location',
+    'website',
+    'githubUsername',
+    'portfolioLinks',
+  ];
 
-  allowedFields.forEach(field => {
-    if (req.body[field] !== undefined) {
-      updates[field] = req.body[field];
+  const updates = {};
+  const payload = req.validatedBody || req.body;
+
+  allowedFields.forEach((field) => {
+    if (payload[field] !== undefined) {
+      updates[field] = payload[field];
     }
   });
 
-  const user = await User.findByIdAndUpdate(
-    req.user._id,
-    updates,
-    { new: true, runValidators: true }
-  ).select('-password -refreshToken');
+  const user = await User.findByIdAndUpdate(req.user._id, updates, {
+    new: true,
+    runValidators: true,
+  }).select('-password -refreshToken');
 
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
 
-  res.json(new ApiResponse(200, user, 'Profile updated successfully'));
+  res.json(new ApiResponse(200, user.toPublicProfile(), 'Profile updated successfully'));
 });
 
-const followUser = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
-
-  if (userId === req.user._id.toString()) {
-    throw new ApiError(400, 'You cannot follow yourself');
+const uploadAvatar = asyncHandler(async (req, res) => {
+  if (!req.file || !req.file.buffer) {
+    throw new ApiError(400, 'Avatar file is required');
   }
 
-  const targetUser = await User.findById(userId);
-  if (!targetUser) {
-    throw new ApiError(404, 'User not found');
-  }
+  const uploadResult = await new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'techmates/avatars',
+        resource_type: 'image',
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(result);
+      }
+    );
 
-  if (!targetUser.followers) {
-    targetUser.followers = [];
-  }
+    stream.end(req.file.buffer);
+  });
 
-  if (targetUser.followers.includes(req.user._id)) {
-    throw new ApiError(400, 'You already follow this user');
-  }
-
-  targetUser.followers.push(req.user._id);
-  await targetUser.save();
-
-  res.json(new ApiResponse(200, targetUser, 'User followed successfully'));
-});
-
-const unfollowUser = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
-
-  const targetUser = await User.findById(userId);
-  if (!targetUser) {
-    throw new ApiError(404, 'User not found');
-  }
-
-  if (!targetUser.followers) {
-    targetUser.followers = [];
-  }
-
-  targetUser.followers = targetUser.followers.filter(
-    followerId => followerId.toString() !== req.user._id.toString()
-  );
-  await targetUser.save();
-
-  res.json(new ApiResponse(200, targetUser, 'User unfollowed successfully'));
-});
-
-const getUserReviews = asyncHandler(async (req, res) => {
-  const Review = require('../models/review.model');
-  
-  const reviews = await Review.find({ revieweeId: req.params.id })
-    .sort({ createdAt: -1 });
-
-  const averageRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(2)
-    : 0;
-
-  res.json(new ApiResponse(200, { reviews, averageRating }, 'Reviews fetched successfully'));
-});
-
-const getUserStats = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id);
-  
+  const user = await User.findById(req.user._id);
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
 
-  const stats = {
-    totalFollowers: user.followers?.length || 0,
-    totalProjects: user.totalProjects || 0,
-    totalEarnings: user.totalEarnings || 0,
-    successRate: user.successRate || 0,
+  user.avatar = uploadResult.secure_url;
+  await user.save();
+
+  res.json(new ApiResponse(200, { avatarUrl: user.avatar }, 'Avatar uploaded successfully'));
+});
+
+const getDashboard = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const role = req.user.role;
+
+  if (role === 'client') {
+    const [
+      activeRequirements,
+      activeContracts,
+      totalSpentAgg,
+      recentRequirements,
+      recentContracts,
+    ] = await Promise.all([
+      Requirement.countDocuments({ postedBy: userId, status: 'open', isDeleted: false }),
+      Contract.countDocuments({ clientId: userId, status: 'active', isDeleted: false }),
+      Purchase.aggregate([
+        { $match: { buyerId: userId, status: { $in: ['completed', 'disputed', 'refunded'] }, isDeleted: false } },
+        { $group: { _id: null, totalSpent: { $sum: '$amount' } } },
+      ]),
+      Requirement.find({ postedBy: userId, isDeleted: false })
+        .sort({ createdAt: -1 })
+        .limit(5),
+      Contract.find({ clientId: userId, isDeleted: false })
+        .sort({ createdAt: -1 })
+        .limit(5),
+    ]);
+
+    res.json(new ApiResponse(200, {
+      activeRequirements,
+      activeContracts,
+      totalSpent: totalSpentAgg[0]?.totalSpent || 0,
+      recentRequirements,
+      recentContracts,
+    }, 'Client dashboard fetched successfully'));
+    return;
+  }
+
+  if (role === 'developer') {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, 'User not found');
+    }
+
+    const [activeProposals, activeContracts, recentContracts, recentProposals] = await Promise.all([
+      Proposal.countDocuments({
+        developerId: userId,
+        isDeleted: false,
+        status: { $in: ['pending', 'shortlisted'] },
+      }),
+      Contract.countDocuments({ developerId: userId, status: 'active', isDeleted: false }),
+      Contract.find({ developerId: userId, isDeleted: false })
+        .sort({ createdAt: -1 })
+        .limit(5),
+      Proposal.find({ developerId: userId, isDeleted: false })
+        .sort({ createdAt: -1 })
+        .limit(5),
+    ]);
+
+    res.json(new ApiResponse(200, {
+      activeProposals,
+      activeContracts,
+      walletBalance: user.walletBalance || 0,
+      totalEarnings: user.totalEarnings || 0,
+      avgRating: user.avgRating || 0,
+      tier: user.tier || 'beginner',
+      isPro: Boolean(user.isPro),
+      recentContracts,
+      recentProposals,
+    }, 'Developer dashboard fetched successfully'));
+    return;
+  }
+
+  if (role === 'admin') {
+    const analytics = await adminService.getPlatformAnalytics('today');
+    res.json(new ApiResponse(200, analytics, 'Admin dashboard fetched successfully'));
+    return;
+  }
+
+  throw new ApiError(403, 'Invalid role');
+});
+
+const searchDevelopers = asyncHandler(async (req, res) => {
+  const queryInput = req.validatedQuery || req.query;
+  const page = Number(queryInput.page || 1);
+  const limit = Math.min(Number(queryInput.limit || 12), 50);
+  const skip = (page - 1) * limit;
+
+  const query = {
+    role: 'developer',
+    isDeleted: false,
+    isBanned: false,
   };
 
-  res.json(new ApiResponse(200, stats, 'User stats fetched successfully'));
-});
+  if (queryInput.skills) {
+    const skills = String(queryInput.skills)
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
 
-const getAllDevelopers = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 12, search = '', skills = '', tier = '' } = req.query;
-  
-  const pageNum = Math.max(1, parseInt(page));
-  const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
-  const skip = (pageNum - 1) * limitNum;
-
-  const query = { role: 'developer' };
-
-  // Search by name, email, or bio
-  if (search) {
-    query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-      { bio: { $regex: search, $options: 'i' } },
-    ];
+    if (skills.length > 0) {
+      query.skills = { $in: skills };
+    }
   }
 
-  // Filter by skills
-  if (skills) {
-    const skillArray = skills.split(',').map(s => s.trim());
-    query.skills = { $in: skillArray };
+  if (queryInput.minRating !== undefined) {
+    query.avgRating = { $gte: Number(queryInput.minRating) };
   }
 
-  // Filter by tier
-  if (tier && ['elite', 'professional', 'beginner'].includes(tier)) {
-    query.tier = tier;
+  if (queryInput.tier) {
+    query.tier = queryInput.tier;
   }
 
-  const [developers, total] = await Promise.all([
+  if (queryInput.isPro !== undefined) {
+    query.isPro = queryInput.isPro;
+  }
+
+  if (queryInput.search) {
+    query.name = { $regex: String(queryInput.search), $options: 'i' };
+  }
+
+  const sortBy = queryInput.sortBy || 'rating';
+  let sort = { avgRating: -1, createdAt: -1 };
+
+  if (sortBy === 'contracts') {
+    sort = { totalContractsCompleted: -1, createdAt: -1 };
+  }
+
+  if (sortBy === 'newest') {
+    sort = { createdAt: -1 };
+  }
+
+  const [users, total] = await Promise.all([
     User.find(query)
       .select('-password -refreshToken')
-      .sort({ avgRating: -1, createdAt: -1 })
+      .sort(sort)
       .skip(skip)
-      .limit(limitNum)
-      .lean(),
+      .limit(limit),
     User.countDocuments(query),
   ]);
 
-  res.json(
-    new ApiResponse(
-      200,
-      developers,
-      'Developers fetched successfully',
-      {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
-      }
-    )
-  );
+  res.json(new ApiResponse(200, {
+    developers: users.map((user) => user.toPublicProfile()),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    },
+  }, 'Developers fetched successfully'));
 });
 
 module.exports = {
-  getUserProfile,
+  getPublicProfile,
+  getMyProfile,
   updateProfile,
-  followUser,
-  unfollowUser,
-  getUserReviews,
-  getUserStats,
-  getAllDevelopers,
+  uploadAvatar,
+  getDashboard,
+  searchDevelopers,
 };

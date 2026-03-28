@@ -1,30 +1,19 @@
 const express = require('express');
 const reviewController = require('../controllers/review.controller');
+const validate = require('../middleware/validate.middleware');
 const { verifyJWT } = require('../middleware/auth.middleware');
-const asyncHandler = require('../utils/asyncHandler');
+const { submitReviewSchema } = require('../validators/review.validator');
 
 const router = express.Router();
 
-// Public routes
-router.get('/', asyncHandler(reviewController.getReviews));
-
-// Protected routes
 router.post(
   '/',
   verifyJWT,
-  asyncHandler(reviewController.createReview)
+  validate(submitReviewSchema),
+  reviewController.submitReview
 );
 
-router.put(
-  '/:id',
-  verifyJWT,
-  asyncHandler(reviewController.updateReview)
-);
-
-router.delete(
-  '/:id',
-  verifyJWT,
-  asyncHandler(reviewController.deleteReview)
-);
+router.get('/user/:userId', reviewController.getReviewsForUser);
+router.get('/listing/:listingId', reviewController.getReviewsForListing);
 
 module.exports = router;

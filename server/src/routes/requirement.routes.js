@@ -12,27 +12,27 @@ const router = express.Router();
 router.post(
   '/',
   verifyJWT,
-  requireRole('client'),
+  requireRole('client', 'user'),
   validate(createRequirementSchema),
   requirementController.createRequirement
 );
 
 router.get('/', requirementController.getRequirements);
 
-router.get('/my', verifyJWT, requireRole('client'), requirementController.getMyRequirements);
+router.get('/my', verifyJWT, requireRole('client', 'user'), requirementController.getMyRequirements);
 
 router.get('/:id', requirementController.getRequirementById);
 
 router.put(
   '/:id',
   verifyJWT,
-  requireRole('client'),
+  requireRole('client', 'user'),
   validate(updateRequirementSchema),
   requirementController.updateRequirement
 );
 
-router.delete('/:id', verifyJWT, requireRole('client'), requirementController.deleteRequirement);
+router.delete('/:id', verifyJWT, requireRole('client', 'user'), requirementController.deleteRequirement);
 
-router.put('/:id/close', verifyJWT, requireRole('client'), requirementController.closeRequirement);
+router.put('/:id/close', verifyJWT, requireRole('client', 'user'), requirementController.closeRequirement);
 
 module.exports = router;

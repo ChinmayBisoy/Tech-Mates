@@ -1,4 +1,4 @@
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
@@ -34,8 +34,8 @@ export default function PostRequirement() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
-    control,
   } = useForm({
     resolver: zodResolver(postRequirementSchema),
     defaultValues: {
@@ -53,14 +53,24 @@ export default function PostRequirement() {
     mutationFn: (data) => {
       const deadline = new Date(data.deadline);
       return requirementAPI.createRequirement({
-        ...data,
+        title: data.title,
+        description: data.description,
+        category: data.category,
         skills: selectedSkills,
+        budgetMin: Math.round(data.budget.min * 100),
+        budgetMax: Math.round(data.budget.max * 100),
+        budgetType: 'fixed',
         deadline: deadline.toISOString(),
       });
     },
     onSuccess: (data) => {
       toast.success('Requirement posted successfully!');
-      navigate(`/se-market/requirement/${data.id}`);
+      const createdId = data?.id || data?._id || data?.requirement?.id || data?.requirement?._id;
+      if (createdId) {
+        navigate(`/se-market/requirement/${createdId}`);
+      } else {
+        navigate('/se-market/my');
+      }
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to post requirement');
@@ -72,14 +82,26 @@ export default function PostRequirement() {
       toast.error('Please select at least one skill');
       return;
     }
-    createMutation.mutate({
-      ...data,
-      budget: {
-        min: Math.round(data.budget.min * 100), // Convert to paise
-        max: Math.round(data.budget.max * 100),
-      },
-    });
+    createMutation.mutate(data);
   });
+
+  const toggleSkill = (skill) => {
+    if (selectedSkills.includes(skill)) {
+      const nextSkills = selectedSkills.filter((s) => s !== skill);
+      setSelectedSkills(nextSkills);
+      setValue('skills', nextSkills, { shouldValidate: true, shouldDirty: true });
+      return;
+    }
+
+    if (selectedSkills.length < 10) {
+      const nextSkills = [...selectedSkills, skill];
+      setSelectedSkills(nextSkills);
+      setValue('skills', nextSkills, { shouldValidate: true, shouldDirty: true });
+      return;
+    }
+
+    toast.error('Maximum 10 skills allowed');
+  };
 
   // Check user role
   if (!isUser) {
@@ -126,7 +148,7 @@ export default function PostRequirement() {
               id="title"
               {...register('title')}
               maxLength={100}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
               placeholder="Build a React dashboard for my business"
             />
             {errors.title && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.title.message}</p>}
@@ -143,7 +165,7 @@ export default function PostRequirement() {
               {...register('description')}
               rows={6}
               maxLength={2000}
-              className="mt-2 w-full resize-none rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full resize-none rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
               placeholder="Describe your project requirements, goals, scope, and any specific requirements..."
             />
             {errors.description && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.description.message}</p>}
@@ -158,7 +180,7 @@ export default function PostRequirement() {
             <select
               id="category"
               {...register('category')}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
             >
               <option value="">Select a category</option>
               {CATEGORIES.map((cat) => (
@@ -180,15 +202,7 @@ export default function PostRequirement() {
                 <button
                   key={skill}
                   type="button"
-                  onClick={() => {
-                    if (selectedSkills.includes(skill)) {
-                      setSelectedSkills(selectedSkills.filter((s) => s !== skill));
-                    } else if (selectedSkills.length < 10) {
-                      setSelectedSkills([...selectedSkills, skill]);
-                    } else {
-                      toast.error('Maximum 10 skills allowed');
-                    }
-                  }}
+                  onClick={() => toggleSkill(skill)}
                   className={`rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
                     selectedSkills.includes(skill)
                       ? 'bg-primary text-white dark:bg-accent'
@@ -199,7 +213,11 @@ export default function PostRequirement() {
                 </button>
               ))}
             </div>
-            {selectedSkills.length === 0 && <p className="mt-1 text-sm text-red-600 dark:text-red-400">Please select at least one skill</p>}
+            {(errors.skills || selectedSkills.length === 0) && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                {errors.skills?.message || 'Please select at least one skill'}
+              </p>
+            )}
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               Selected: {selectedSkills.length}/10 skills
             </p>
@@ -215,7 +233,7 @@ export default function PostRequirement() {
                 type="number"
                 {...register('budget.min', { valueAsNumber: true })}
                 min={100}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
                 placeholder="10000"
               />
               {errors.budget?.min && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.budget.min.message}</p>}
@@ -228,7 +246,7 @@ export default function PostRequirement() {
                 type="number"
                 {...register('budget.max', { valueAsNumber: true })}
                 min={100}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
                 placeholder="50000"
               />
               {errors.budget?.max && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.budget.max.message}</p>}
@@ -245,7 +263,7 @@ export default function PostRequirement() {
               id="deadline"
               {...register('deadline')}
               min={minDate}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
             />
             {errors.deadline && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.deadline.message}</p>}
           </div>
@@ -259,7 +277,7 @@ export default function PostRequirement() {
               type="text"
               id="location"
               {...register('location')}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
               placeholder="e.g., Bangalore, India (Remote accepted)"
             />
           </div>
@@ -269,7 +287,7 @@ export default function PostRequirement() {
             <button
               type="submit"
               disabled={isSubmitting || createMutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary py-3 font-bold text-white transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-accent dark:hover:bg-accent/90"
+              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary-600 py-3 font-bold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-accent-600 dark:hover:bg-accent-700"
             >
               {isSubmitting || createMutation.isPending ? (
                 <>

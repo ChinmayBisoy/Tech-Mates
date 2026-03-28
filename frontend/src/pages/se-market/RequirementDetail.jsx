@@ -37,6 +37,16 @@ export default function RequirementDetail() {
   const requirement = requirementQuery.data;
   const proposals = proposalsQuery.data?.proposals || [];
 
+  const client = requirement?.client || requirement?.postedBy || {};
+  const clientId = client?.id || client?._id || (typeof requirement?.postedBy === 'string' ? requirement.postedBy : null);
+  const clientName = client?.name || 'Client';
+  const clientAvatar = client?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(clientName)}`;
+  const skills = requirement?.skills || requirement?.skillsRequired || [];
+  const budget = requirement?.budget || {
+    min: Number(requirement?.budgetMin || 0),
+    max: Number(requirement?.budgetMax || 0),
+  };
+
   if (requirementQuery.isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 dark:bg-gray-950">
@@ -114,13 +124,15 @@ export default function RequirementDetail() {
               {/* Client Info */}
               <div className="mt-6 flex items-center gap-4 border-t border-gray-200 pt-6 dark:border-gray-700">
                 <img
-                  src={requirement.client.avatar || `https://ui-avatars.com/api/?name=${requirement.client.name}`}
-                  alt={requirement.client.name}
+                  src={clientAvatar}
+                  alt={clientName}
                   className="h-12 w-12 rounded-full object-cover"
                 />
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">{requirement.client.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Member since {formatDate(new Date(requirement.client.createdAt))}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{clientName}</p>
+                  {client?.createdAt && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Member since {formatDate(new Date(client.createdAt))}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -133,7 +145,7 @@ export default function RequirementDetail() {
               {/* Skills */}
               <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
                 <h3 className="mb-3 font-semibold text-gray-900 dark:text-white">Required Skills</h3>
-                <SkillTags skills={requirement.skills} />
+                <SkillTags skills={skills} />
               </div>
 
               {/* Location if applicable */}
@@ -146,7 +158,7 @@ export default function RequirementDetail() {
             </div>
 
             {/* Proposals Section (for requirement owner) */}
-            {isUser && requirement.client.id === user?.id && (
+            {isUser && clientId === user?.id && (
               <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
                 <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
                   <Users className="h-5 w-5" />
@@ -205,7 +217,7 @@ export default function RequirementDetail() {
                     Budget
                   </div>
                   <p className="mt-1 text-lg font-bold text-primary dark:text-accent">
-                    ₹{formatINR(requirement.budget.min / 100)} - ₹{formatINR(requirement.budget.max / 100)}
+                    ₹{formatINR(budget.min / 100)} - ₹{formatINR(budget.max / 100)}
                   </p>
                 </div>
 

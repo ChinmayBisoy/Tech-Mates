@@ -2,37 +2,93 @@ const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema(
   {
-    userId: {
+    contractId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Contract',
+      default: null,
+      index: true,
+    },
+    milestoneId: {
+      type: String,
+      default: null,
+    },
+    clientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      default: null,
+      index: true,
+    },
+    developerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
       index: true,
     },
     type: {
       type: String,
-      enum: ['credit', 'debit'],
-      required: true,
+      enum: ['milestone_payment', 'milestone_release', 'refund', 'credit', 'debit'],
+      default: 'milestone_payment',
     },
     amount: {
       type: Number,
       required: true,
       min: 0,
     },
+    platformFee: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    developerEarnings: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    commissionRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    stripePaymentIntentId: {
+      type: String,
+      default: null,
+    },
+    stripeChargeId: {
+      type: String,
+      default: null,
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'held', 'released', 'refunded', 'disputed', 'failed', 'completed', 'cancelled'],
+      default: 'pending',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
+    // Compatibility fields for existing non-escrow transaction flows.
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+      index: true,
+    },
     description: {
       type: String,
-      required: true,
+      default: '',
     },
     reference: {
-      type: String, // contractId, proposalId, etc.
+      type: String,
+      default: null,
     },
     referenceType: {
       type: String,
       enum: ['contract', 'proposal', 'withdrawal', 'deposit', 'refund'],
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'completed', 'failed', 'cancelled'],
-      default: 'pending',
     },
     paymentMethod: {
       type: String,
@@ -43,5 +99,7 @@ const transactionSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+transactionSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

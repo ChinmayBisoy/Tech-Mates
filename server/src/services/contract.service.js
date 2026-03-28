@@ -4,6 +4,8 @@ const Requirement = require('../models/requirement.model');
 const User = require('../models/user.model');
 const ApiError = require('../utils/ApiError');
 const { calculateCommission } = require('./commission.service');
+const notificationService = require('./notification.service');
+const emailService = require('./email.service');
 
 const normalizePagination = (pagination = {}) => {
   const parsedPage = Number.parseInt(pagination.page, 10);
@@ -190,6 +192,42 @@ const approveMilestone = async (contractId, clientId, milestoneId) => {
     contract.status = 'completed';
     contract.completedAt = new Date();
     developer.totalContractsCompleted = Number(developer.totalContractsCompleted || 0) + 1;
+
+    const client = await User.findById(contract.clientId);
+
+    if (client?.email) {
+      await emailService.sendEmail(
+        client.email,
+        'Contract completed - Leave your review',
+        `Your contract "${contract.title}" is completed. Please leave a review for your developer.`,
+        `<p>Your contract <strong>${contract.title}</strong> is completed. Please leave a review for your developer.</p>`
+      );
+    }
+
+    if (developer?.email) {
+      await emailService.sendEmail(
+        developer.email,
+        'Contract completed - Leave your review',
+        `Your contract "${contract.title}" is completed. Please leave a review for your client.`,
+        `<p>Your contract <strong>${contract.title}</strong> is completed. Please leave a review for your client.</p>`
+      );
+    }
+
+    await notificationService.createNotification(
+      contract.clientId,
+      'review_received',
+      'Leave a Review',
+      'Your contract is completed. Please leave a review for the developer.',
+      { contractId: contract._id }
+    );
+
+    await notificationService.createNotification(
+      contract.developerId,
+      'review_received',
+      'Leave a Review',
+      'Your contract is completed. Please leave a review for the client.',
+      { contractId: contract._id }
+    );
   }
 
   if (typeof developer.recalculateTier === 'function') {
@@ -197,6 +235,8 @@ const approveMilestone = async (contractId, clientId, milestoneId) => {
   }
 
   await Promise.all([contract.save(), developer.save()]);
+
+  await notificationService.notifyMilestoneApproved(contract.developerId, milestone, payout);
 
   return contract;
 };

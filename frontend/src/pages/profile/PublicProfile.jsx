@@ -30,7 +30,7 @@ export function PublicProfile() {
     enabled: !!id,
   })
 
-  const reviews = reviewsResponse?.data || []
+  const reviews = reviewsResponse?.reviews || []
 
   if (userLoading) return <PageLoader />
 

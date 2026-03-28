@@ -60,7 +60,7 @@ export function ListingFilters({ filters, onFilterChange }) {
                   type="checkbox"
                   checked={filters.types.includes(type)}
                   onChange={() => handleTypeChange(type)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-accent dark:checked:border-accent"
+                  className="h-4 w-4 rounded border-gray-300 bg-white accent-primary [color-scheme:light] focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:accent-accent dark:[color-scheme:dark]"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-300">{type}</span>
               </label>
@@ -92,7 +92,7 @@ export function ListingFilters({ filters, onFilterChange }) {
                   name="price"
                   checked={filters.priceRange === id}
                   onChange={() => handlePriceRangeChange(id)}
-                  className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-accent dark:checked:border-accent"
+                  className="h-4 w-4 border-gray-300 bg-white accent-primary [color-scheme:light] focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:accent-accent dark:[color-scheme:dark]"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-300">{label}</span>
               </label>
@@ -119,7 +119,7 @@ export function ListingFilters({ filters, onFilterChange }) {
                   name="rating"
                   checked={filters.minRating === rating}
                   onChange={() => handleRatingChange(rating)}
-                  className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-accent dark:checked:border-accent"
+                  className="h-4 w-4 border-gray-300 bg-white accent-primary [color-scheme:light] focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:accent-accent dark:[color-scheme:dark]"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   {rating}⭐ & up
@@ -147,7 +147,7 @@ export function ListingFilters({ filters, onFilterChange }) {
                   type="checkbox"
                   checked={filters.techStack.includes(skill)}
                   onChange={() => handleTechStackChange(skill)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-accent dark:checked:border-accent"
+                  className="h-4 w-4 rounded border-gray-300 bg-white accent-primary [color-scheme:light] focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:accent-accent dark:[color-scheme:dark]"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-300">{skill}</span>
               </label>

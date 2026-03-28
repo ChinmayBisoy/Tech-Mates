@@ -61,7 +61,7 @@ export function RequirementFilters({ filters, onFilterChange }) {
                   type="checkbox"
                   checked={filters.categories.includes(category)}
                   onChange={() => handleCategoryChange(category)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-accent dark:checked:border-accent"
+                  className="h-4 w-4 rounded border-gray-300 bg-white accent-primary [color-scheme:light] focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:accent-accent dark:[color-scheme:dark]"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-300">{category}</span>
               </label>
@@ -87,7 +87,7 @@ export function RequirementFilters({ filters, onFilterChange }) {
                   type="checkbox"
                   checked={filters.skills.includes(skill)}
                   onChange={() => handleSkillChange(skill)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-accent dark:checked:border-accent"
+                  className="h-4 w-4 rounded border-gray-300 bg-white accent-primary [color-scheme:light] focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:accent-accent dark:[color-scheme:dark]"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-300">{skill}</span>
               </label>
@@ -119,7 +119,7 @@ export function RequirementFilters({ filters, onFilterChange }) {
                   name="budget"
                   checked={filters.budgetRange === id}
                   onChange={() => handleBudgetRangeChange(id)}
-                  className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-accent dark:checked:border-accent"
+                  className="h-4 w-4 border-gray-300 bg-white accent-primary [color-scheme:light] focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:accent-accent dark:[color-scheme:dark]"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-300">{label}</span>
               </label>
@@ -151,7 +151,7 @@ export function RequirementFilters({ filters, onFilterChange }) {
                   name="deadline"
                   checked={filters.deadlineInDays === days}
                   onChange={() => handleDeadlineChange(days)}
-                  className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-accent dark:checked:border-accent"
+                  className="h-4 w-4 border-gray-300 bg-white accent-primary [color-scheme:light] focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:accent-accent dark:[color-scheme:dark]"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-300">{label}</span>
               </label>

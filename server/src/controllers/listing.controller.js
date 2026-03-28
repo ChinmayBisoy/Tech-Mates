@@ -1,157 +1,116 @@
-const Listing = require('../models/listing.model');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
+const listingService = require('../services/listing.service');
+const wishlistService = require('../services/wishlist.service');
+const { listingQuerySchema } = require('../validators/listing.validator');
 
-const createListing = asyncHandler(async (req, res) => {
-  const { title, description, category, price, tags, fileUrl } = req.body;
-
-  if (!title || !description || !category || !price) {
-    throw new ApiError(400, 'title, description, category, and price are required');
+const parseListingQuery = (query) => {
+  const parsed = listingQuerySchema.safeParse(query);
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    throw new ApiError(400, firstError?.message || 'Invalid listing query');
   }
 
-  const listing = await Listing.create({
-    title,
-    description,
-    category,
-    price,
-    tags,
-    fileUrl,
-    sellerId: req.user._id,
-  });
+  return parsed.data;
+};
+
+const createListing = asyncHandler(async (req, res) => {
+  const listing = await listingService.createListing(req.user._id, req.validatedBody || req.body);
 
   res.status(201).json(new ApiResponse(201, listing, 'Listing created successfully'));
 });
 
-const getListings = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 12, category, search, sortBy = 'newest' } = req.query;
+const submitForReview = asyncHandler(async (req, res) => {
+  const listing = await listingService.submitForReview(req.params.id, req.user._id);
 
-  const skip = (page - 1) * limit;
-  const query = { status: 'active', visibility: 'public' };
-
-  if (category) {
-    query.category = category;
-  }
-
-  if (search) {
-    query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-    ];
-  }
-
-  let sortOption = {};
-  switch (sortBy) {
-    case 'price_asc':
-      sortOption = { price: 1 };
-      break;
-    case 'price_desc':
-      sortOption = { price: -1 };
-      break;
-    case 'rating':
-      sortOption = { rating: -1 };
-      break;
-    default:
-      sortOption = { createdAt: -1 };
-  }
-
-  const [listings, total] = await Promise.all([
-    Listing.find(query)
-      .populate('sellerId', 'name profilePhoto')
-      .sort(sortOption)
-      .skip(skip)
-      .limit(Number(limit)),
-    Listing.countDocuments(query),
-  ]);
-
-  res.json(new ApiResponse(200, {
-    listings,
-    pagination: {
-      total,
-      pages: Math.ceil(total / limit),
-      currentPage: Number(page),
-    },
-  }, 'Listings fetched successfully'));
+  res.json(new ApiResponse(200, listing, 'Listing submitted for review successfully'));
 });
 
-const getListingDetail = asyncHandler(async (req, res) => {
-  const listing = await Listing.findById(req.params.id).populate('sellerId', 'name profilePhoto bio');
+const getListings = asyncHandler(async (req, res) => {
+  const filters = parseListingQuery(req.query);
+  const result = await listingService.getListings(filters, req.query);
 
-  if (!listing) {
-    throw new ApiError(404, 'Listing not found');
-  }
+  res.json(new ApiResponse(200, result, 'Listings fetched successfully'));
+});
+
+const getListingBySlug = asyncHandler(async (req, res) => {
+  const listing = await listingService.getListingBySlug(req.params.slug);
 
   res.json(new ApiResponse(200, listing, 'Listing fetched successfully'));
 });
 
+const getMyListings = asyncHandler(async (req, res) => {
+  const result = await listingService.getMyListings(req.user._id, req.query);
+
+  res.json(new ApiResponse(200, result, 'My listings fetched successfully'));
+});
+
 const updateListing = asyncHandler(async (req, res) => {
-  const listing = await Listing.findById(req.params.id);
-
-  if (!listing) {
-    throw new ApiError(404, 'Listing not found');
-  }
-
-  if (listing.sellerId.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, 'You can only update your own listings');
-  }
-
-  const allowedFields = ['title', 'description', 'category', 'price', 'tags', 'images'];
-  allowedFields.forEach(field => {
-    if (req.body[field] !== undefined) {
-      listing[field] = req.body[field];
-    }
-  });
-
-  await listing.save();
+  const listing = await listingService.updateListing(req.params.id, req.user._id, req.validatedBody || req.body);
 
   res.json(new ApiResponse(200, listing, 'Listing updated successfully'));
 });
 
 const deleteListing = asyncHandler(async (req, res) => {
-  const listing = await Listing.findById(req.params.id);
-
-  if (!listing) {
-    throw new ApiError(404, 'Listing not found');
-  }
-
-  if (listing.sellerId.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, 'You can only delete your own listings');
-  }
-
-  listing.status = 'delisted';
-  await listing.save();
+  await listingService.deleteListing(req.params.id, req.user._id);
 
   res.json(new ApiResponse(200, {}, 'Listing deleted successfully'));
 });
 
-const purchaseListing = asyncHandler(async (req, res) => {
-  const listing = await Listing.findById(req.params.id);
+const adminApproveListing = asyncHandler(async (req, res) => {
+  const listing = await listingService.adminApproveListing(req.params.id, req.user._id);
 
-  if (!listing) {
-    throw new ApiError(404, 'Listing not found');
+  res.json(new ApiResponse(200, listing, 'Listing approved successfully'));
+});
+
+const adminRejectListing = asyncHandler(async (req, res) => {
+  const { reason } = req.body;
+  if (!reason || !String(reason).trim()) {
+    throw new ApiError(400, 'reason is required');
   }
 
-  // Create purchase record
-  const Purchase = require('../models/purchase.model');
-  const purchase = await Purchase.create({
-    buyerId: req.user._id,
-    listingId: req.params.id,
-    amount: listing.price,
-    status: 'completed',
-  });
+  const listing = await listingService.adminRejectListing(req.params.id, req.user._id, reason);
 
-  // Update listing
-  listing.purchaseCount += 1;
-  await listing.save();
+  res.json(new ApiResponse(200, listing, 'Listing rejected successfully'));
+});
 
-  res.status(201).json(new ApiResponse(201, purchase, 'Listing purchased successfully'));
+const getPendingListings = asyncHandler(async (req, res) => {
+  const result = await listingService.getPendingListings(req.query);
+
+  res.json(new ApiResponse(200, result, 'Pending listings fetched successfully'));
+});
+
+const addToWishlist = asyncHandler(async (req, res) => {
+  const result = await wishlistService.addToWishlist(req.user._id, req.params.listingId);
+
+  res.json(new ApiResponse(200, result, 'Listing added to wishlist'));
+});
+
+const removeFromWishlist = asyncHandler(async (req, res) => {
+  const result = await wishlistService.removeFromWishlist(req.user._id, req.params.listingId);
+
+  res.json(new ApiResponse(200, result, 'Listing removed from wishlist'));
+});
+
+const getWishlist = asyncHandler(async (req, res) => {
+  const result = await wishlistService.getWishlist(req.user._id, req.query);
+
+  res.json(new ApiResponse(200, result, 'Wishlist fetched successfully'));
 });
 
 module.exports = {
   createListing,
+  submitForReview,
   getListings,
-  getListingDetail,
+  getListingBySlug,
+  getMyListings,
   updateListing,
   deleteListing,
-  purchaseListing,
+  adminApproveListing,
+  adminRejectListing,
+  getPendingListings,
+  addToWishlist,
+  removeFromWishlist,
+  getWishlist,
 };

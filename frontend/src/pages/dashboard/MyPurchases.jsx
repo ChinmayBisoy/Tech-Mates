@@ -22,7 +22,7 @@ export default function MyPurchases() {
   });
 
   const purchases = purchasesQuery.data?.purchases || [];
-  const totalPages = purchasesQuery.data?.totalPages || 1;
+  const totalPages = purchasesQuery.data?.pagination?.totalPages || 1;
 
   if (!user) {
     return (

@@ -77,7 +77,7 @@ export function ReviewForm({ listingId, purchaseId, onSuccess, onCancel }) {
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Summarize your experience..."
           maxLength={100}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
         />
       </div>
 
@@ -92,7 +92,7 @@ export function ReviewForm({ listingId, purchaseId, onSuccess, onCancel }) {
           placeholder="Share your detailed thoughts..."
           maxLength={500}
           rows={4}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 resize-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 resize-none bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
         />
         <p className="mt-1 text-xs text-gray-500">
           {content.length}/500 characters

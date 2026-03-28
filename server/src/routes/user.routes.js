@@ -1,33 +1,36 @@
 const express = require('express');
 const userController = require('../controllers/user.controller');
 const { verifyJWT } = require('../middleware/auth.middleware');
-const asyncHandler = require('../utils/asyncHandler');
+const validate = require('../middleware/validate.middleware');
+const { uploadLimiter } = require('../middleware/rateLimiter');
+const { imageUpload } = require('../middleware/upload.middleware');
+const { updateProfileSchema, searchDeveloperSchema } = require('../validators/user.validator');
 
 const router = express.Router();
 
-// Public routes
-router.get('/browse/developers', asyncHandler(userController.getAllDevelopers));
-router.get('/:id', asyncHandler(userController.getUserProfile));
-router.get('/:id/reviews', asyncHandler(userController.getUserReviews));
-router.get('/:id/stats', asyncHandler(userController.getUserStats));
+router.get('/search', validate(searchDeveloperSchema, 'query'), userController.searchDevelopers);
+router.get('/me', verifyJWT, userController.getMyProfile);
+router.get('/:id', userController.getPublicProfile);
 
-// Protected routes
 router.put(
-  '/profile',
+  '/me',
   verifyJWT,
-  asyncHandler(userController.updateProfile)
+  validate(updateProfileSchema),
+  userController.updateProfile
 );
 
 router.post(
-  '/:userId/follow',
+  '/me/avatar',
   verifyJWT,
-  asyncHandler(userController.followUser)
+  uploadLimiter,
+  imageUpload.single('avatar'),
+  userController.uploadAvatar
 );
 
-router.post(
-  '/:userId/unfollow',
+router.get(
+  '/me/dashboard',
   verifyJWT,
-  asyncHandler(userController.unfollowUser)
+  userController.getDashboard
 );
 
 module.exports = router;

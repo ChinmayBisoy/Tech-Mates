@@ -104,7 +104,7 @@ export default function HelpPage() {
             placeholder="Describe your issue or question..."
             required
             rows={4}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           />
           <button
             type="submit"

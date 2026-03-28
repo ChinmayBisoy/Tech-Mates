@@ -1,37 +1,61 @@
 const express = require('express');
 const listingController = require('../controllers/listing.controller');
-const { verifyJWT } = require('../middleware/auth.middleware');
-const asyncHandler = require('../utils/asyncHandler');
+const validate = require('../middleware/validate.middleware');
+const { verifyJWT, requireRole } = require('../middleware/auth.middleware');
+const { isPro } = require('../middleware/isPro.middleware');
+const { createListingSchema, updateListingSchema } = require('../validators/listing.validator');
 
 const router = express.Router();
 
-// Public routes
-router.get('/', asyncHandler(listingController.getListings));
-router.get('/:id', asyncHandler(listingController.getListingDetail));
+router.get('/', listingController.getListings);
+router.get('/my', verifyJWT, requireRole('developer'), listingController.getMyListings);
+router.get('/pending', verifyJWT, requireRole('admin'), listingController.getPendingListings);
+router.get('/:slug', listingController.getListingBySlug);
 
-// Protected routes
 router.post(
   '/',
   verifyJWT,
-  asyncHandler(listingController.createListing)
+  requireRole('developer'),
+  isPro,
+  validate(createListingSchema),
+  listingController.createListing
 );
 
 router.put(
   '/:id',
   verifyJWT,
-  asyncHandler(listingController.updateListing)
+  requireRole('developer'),
+  validate(updateListingSchema),
+  listingController.updateListing
 );
 
 router.delete(
   '/:id',
   verifyJWT,
-  asyncHandler(listingController.deleteListing)
+  requireRole('developer'),
+  listingController.deleteListing
 );
 
-router.post(
-  '/:id/purchase',
+router.put(
+  '/:id/submit-review',
   verifyJWT,
-  asyncHandler(listingController.purchaseListing)
+  requireRole('developer'),
+  isPro,
+  listingController.submitForReview
+);
+
+router.put(
+  '/:id/approve',
+  verifyJWT,
+  requireRole('admin'),
+  listingController.adminApproveListing
+);
+
+router.put(
+  '/:id/reject',
+  verifyJWT,
+  requireRole('admin'),
+  listingController.adminRejectListing
 );
 
 module.exports = router;

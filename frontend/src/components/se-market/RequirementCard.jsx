@@ -5,8 +5,18 @@ import { SkillTags } from '@/components/profile/SkillTags';
 import { Briefcase, Clock, MapPin } from 'lucide-react';
 
 export function RequirementCard({ requirement, onViewProposals }) {
-  const skillsList = requirement.skills?.slice(0, 3) || [];
-  const skillsCount = requirement.skills?.length || 0;
+  const requirementId = requirement.id || requirement._id;
+  const client = requirement.client || requirement.postedBy || {};
+  const clientName = client.name || 'Client';
+  const clientAvatar = client.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(clientName)}`;
+  const skills = requirement.skills || requirement.skillsRequired || [];
+  const budget = requirement.budget || {
+    min: Number(requirement.budgetMin || 0),
+    max: Number(requirement.budgetMax || 0),
+  };
+
+  const skillsList = skills.slice(0, 3) || [];
+  const skillsCount = skills.length || 0;
   const daysAgo = Math.floor(
     (Date.now() - new Date(requirement.createdAt).getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -15,20 +25,20 @@ export function RequirementCard({ requirement, onViewProposals }) {
 
   return (
     <Link
-      to={`/se-market/requirement/${requirement.id}`}
+      to={`/se-market/requirement/${requirementId}`}
       className="block rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
     >
       {/* Header with client avatar and metadata */}
       <div className="mb-3 flex items-start justify-between">
         <div className="flex items-center gap-3">
           <img
-            src={requirement.client.avatar || `https://ui-avatars.com/api/?name=${requirement.client.name}`}
-            alt={requirement.client.name}
+            src={clientAvatar}
+            alt={clientName}
             className="h-10 w-10 rounded-full object-cover"
           />
           <div className="flex-1">
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              {requirement.client.name}
+              {clientName}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Posted {daysAgo === 0 ? 'today' : `${daysAgo}d ago`}
@@ -71,7 +81,7 @@ export function RequirementCard({ requirement, onViewProposals }) {
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600 dark:text-gray-400">Budget</span>
           <span className="font-bold text-primary">
-            {formatINR(requirement.budget.min / 100)} - {formatINR(requirement.budget.max / 100)}
+            {formatINR(budget.min / 100)} - {formatINR(budget.max / 100)}
           </span>
         </div>
 
