@@ -1,6 +1,17 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { ArrowLeft, Mail, MessageCircle, Star } from 'lucide-react';
+import {
+  ArrowLeft,
+  Mail,
+  MessageCircle,
+  Star,
+  CheckCircle,
+  Calendar,
+  Award,
+  Edit3,
+  Upload,
+  TrendingUp,
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function UserProfilePage() {
@@ -22,113 +33,155 @@ export default function UserProfilePage() {
     skills: ['React', 'Node.js', 'TypeScript', 'MongoDB', 'AWS'],
     hourlyRate: '₹1500',
     isVerified: true,
+    tier: 'Top',
   });
 
   const isOwnProfile = currentUser?.id === userId;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-primary dark:text-accent hover:underline mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-base dark:via-surface dark:to-gray-900 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-primary-600 dark:text-accent-400 hover:text-primary-700 dark:hover:text-accent-300 font-semibold mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
 
-      {/* Profile Header */}
-      <div className="rounded-lg border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-900 mb-6">
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-start">
-          <img
-            src={profile.avatar}
-            alt={profile.name}
-            className="w-24 h-24 rounded-full object-cover"
-          />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {profile.name}
-              </h1>
-              {profile.isVerified && (
-                <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs rounded-full font-semibold">
-                  Verified
-                </span>
-              )}
+        {/* Hero/Profile Card */}
+        <div className="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface shadow-lg overflow-hidden mb-6">
+          <div className="h-28 bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 relative">
+            <div className="pointer-events-none absolute -top-20 right-0 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
+          </div>
+
+          <div className="px-6 sm:px-8 pb-8 -mt-14 sm:-mt-16">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-5">
+              <div className="relative w-fit">
+                <img
+                  src={profile.avatar}
+                  alt={profile.name}
+                  className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover border-4 border-white dark:border-surface shadow-xl"
+                />
+                {profile.isVerified && (
+                  <span className="absolute -bottom-1 -right-1 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-600 text-white text-xs font-semibold">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Verified
+                  </span>
+                )}
+              </div>
+
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
+                    {profile.name}
+                  </h1>
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
+                    <Award className="w-3.5 h-3.5" />
+                    {profile.tier} Tier
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 capitalize mt-1">
+                  {profile.role}
+                </p>
+              </div>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 capitalize mb-4">
-              {profile.role}
-            </p>
-            <p className="text-gray-700 dark:text-gray-300 mb-4">
+
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
               {profile.bio}
             </p>
 
-            {/* Stats */}
-            <div className="grid gap-4 sm:grid-cols-3 mb-6">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Rating</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-bold text-gray-900 dark:text-white">
-                    {profile.rating}
-                  </span>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">
-                    ({profile.reviews} reviews)
-                  </span>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+              <div className="rounded-xl border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 p-4">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Avg Rating</p>
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                  <span className="text-xl font-bold text-gray-900 dark:text-white">{profile.rating}</span>
                 </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {profile.completedProjects}
-                </p>
+
+              <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Reviews</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{profile.reviews}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Rate</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {profile.hourlyRate}/hr
-                </p>
+
+              <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Completed</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{profile.completedProjects}</p>
+              </div>
+
+              <div className="rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 p-4">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Rate</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{profile.hourlyRate}/hr</p>
               </div>
             </div>
 
             {/* Action Buttons */}
-            {!isOwnProfile && (
-              <div className="flex gap-3">
-                <button className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2 font-bold text-white hover:bg-primary/90 dark:bg-accent dark:hover:bg-accent/90">
-                  <MessageCircle className="w-4 h-4" />
-                  Message
-                </button>
-                <button className="flex items-center gap-2 rounded-lg border border-gray-300 px-6 py-2 font-bold hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800">
-                  <Mail className="w-4 h-4" />
-                  Hire
-                </button>
-              </div>
-            )}
+            <div className="flex flex-wrap gap-3">
+              {isOwnProfile ? (
+                <>
+                  <button
+                    onClick={() => navigate('/profile/edit')}
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary-600 hover:bg-primary-700 dark:bg-accent dark:hover:bg-accent-600 px-5 py-2.5 text-white font-semibold transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={() => navigate('/profile/edit')}
+                    className="inline-flex items-center gap-2 rounded-xl border border-gray-300 dark:border-gray-600 px-5 py-2.5 text-gray-900 dark:text-gray-100 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload Avatar
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="inline-flex items-center gap-2 rounded-xl bg-primary-600 hover:bg-primary-700 dark:bg-accent dark:hover:bg-accent-600 px-5 py-2.5 text-white font-semibold transition-colors">
+                    <MessageCircle className="w-4 h-4" />
+                    Message
+                  </button>
+                  <button className="inline-flex items-center gap-2 rounded-xl border border-gray-300 dark:border-gray-600 px-5 py-2.5 text-gray-900 dark:text-gray-100 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <Mail className="w-4 h-4" />
+                    Hire
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Skills */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900 mb-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-          Skills
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {profile.skills.map((skill, idx) => (
-            <span
-              key={idx}
-              className="rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-            >
-              {skill}
+        {/* Skills */}
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Skills</h2>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2.5 py-1 rounded-full">
+              <TrendingUp className="w-3.5 h-3.5" />
+              In Demand
             </span>
-          ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {profile.skills.map((skill, idx) => (
+              <span
+                key={idx}
+                className="rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 border border-primary-200 dark:border-primary-800 px-4 py-2 text-sm font-semibold"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Member Since */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Member since {new Date(profile.joinDate).toLocaleDateString('en-IN')}
-        </p>
+        {/* Member Since */}
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface shadow-sm p-6">
+          <div className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-300">
+            <Calendar className="w-4 h-4" />
+            <p className="text-sm font-medium">
+              Member since {new Date(profile.joinDate).toLocaleDateString('en-IN')}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

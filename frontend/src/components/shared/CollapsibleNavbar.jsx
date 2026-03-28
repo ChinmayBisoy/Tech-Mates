@@ -9,7 +9,7 @@ import {
   HelpCircle, Shield, LayoutDashboard, User, LogIn, LogOut,
   Home, ShoppingBag, Code2, FileText, Menu, X, Zap,
   Gavel, DollarSign, Hammer, AlertCircle, BarChart3, Users, MessageSquare, Star, Store,
-  Briefcase, TrendingUp, Wallet, Award, Clock, CheckCircle, ChevronDown
+  Briefcase, TrendingUp, Wallet, Award, Clock, CheckCircle, ChevronDown, Lock, Crown
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
@@ -46,40 +46,75 @@ export function CollapsibleNavbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const navItems = [
+  const publicNavItems = [
     { icon: Home, label: 'Home', path: '/', public: true },
     { icon: ShoppingBag, label: 'Projects', path: '/projects', public: true },
     { icon: Code2, label: 'SE Market', path: '/se-market/browse', public: true },
     { icon: Users, label: 'Developers', path: '/browse/developers', public: true },
   ]
 
-  // Developer-specific navigation
-  const developerNavItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/purchases', role: 'developer' },
-    { icon: TrendingUp, label: 'Opportunities', path: '/se-market', role: 'developer' },
-    { icon: Briefcase, label: 'My Projects', path: '/projects/active', role: 'developer' },
-    { icon: Wallet, label: 'Earnings', path: '/payments/earnings', role: 'developer' },
+  const profilePath = `/profile/${user?.id || user?._id}`
+  const isProMember = Boolean(
+    user?.isPro ||
+    user?.pro ||
+    user?.proMember ||
+    user?.subscriptionStatus === 'active' ||
+    user?.plan === 'pro' ||
+    user?.subscriptionTier === 'pro' ||
+    user?.subscription?.plan === 'pro'
+  )
+
+  // Developer-specific grouped navigation
+  const developerMainItems = [
+    { icon: Home, label: 'Home', path: '/' },
+    { icon: User, label: 'My Profile', path: profilePath },
   ]
 
-  // User/Client-specific navigation
-  const clientNavItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', role: 'client' },
-    { icon: Briefcase, label: 'My Projects', path: '/projects/my', role: 'client' },
-    { icon: Clock, label: 'Requirements', path: '/se-market/my', role: 'client' },
-    { icon: CheckCircle, label: 'Contracts', path: '/contracts', role: 'client' },
+  const developerWorkItems = [
+    { icon: TrendingUp, label: 'Opportunities', path: '/se-market/browse' },
+    { icon: FileText, label: 'My Proposals', path: '/se-market/my-proposals' },
+    { icon: Briefcase, label: 'My Contracts', path: '/contracts' },
   ]
 
-  // Common authenticated items
-  const commonNavItems = [
-    { icon: MessageSquare, label: 'Messages', path: '/messages', protected: true },
-    { icon: Bell, label: 'Notifications', path: '/notifications', protected: true },
-    { icon: Settings, label: 'Settings', path: '/settings', protected: true },
+  const developerMarketplaceItems = [
+    { icon: Store, label: 'My Listings', path: '/projects/my' },
+    {
+      icon: isProMember ? ShoppingBag : Lock,
+      label: 'Post a Listing',
+      path: isProMember ? '/projects/post' : '/payments/subscription',
+      badge: isProMember ? null : 'Pro',
+    },
   ]
 
-  const marketplaceItems = [
-    { icon: Gavel, label: 'Escrow', path: '/marketplace/escrow', protected: true },
-    { icon: AlertCircle, label: 'Disputes', path: '/marketplace/disputes', protected: true },
+  const developerMoneyItems = [
+    { icon: Wallet, label: 'Earnings', path: '/payments/earnings' },
+    {
+      icon: isProMember ? Award : Crown,
+      label: isProMember ? 'My Subscription' : 'Go Pro',
+      path: '/payments/subscription',
+    },
   ]
+
+  // Client-specific grouped navigation
+  const clientMainItems = [
+    { icon: Home, label: 'Home', path: '/' },
+    { icon: User, label: 'My Profile', path: profilePath },
+  ]
+
+  const clientHireItems = [
+    { icon: FileText, label: 'Post a Requirement', path: '/se-market/post-requirement' },
+    { icon: Clock, label: 'My Requirements', path: '/se-market/my-requirements' },
+    { icon: MessageSquare, label: 'Proposals Received', path: '/se-market/my-requirements' },
+    { icon: CheckCircle, label: 'My Contracts', path: '/contracts' },
+  ]
+
+  const clientMarketplaceItems = [
+    { icon: ShoppingBag, label: 'Browse Projects', path: '/projects' },
+    { icon: Star, label: 'Wishlist', path: '/dashboard/wishlist' },
+    { icon: Store, label: 'My Purchases', path: '/dashboard/purchases' },
+  ]
+
+  const dashboardPath = user?.role === 'developer' ? '/dashboard/purchases' : '/dashboard'
 
   const isActive = (path) => location.pathname === path
 
@@ -122,6 +157,17 @@ export function CollapsibleNavbar() {
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
+              </button>
+            )}
+
+            {/* Messages */}
+            {isAuthenticated && (
+              <button
+                onClick={() => navigate('/messages')}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Messages"
+              >
+                <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
             )}
 
@@ -174,6 +220,14 @@ export function CollapsibleNavbar() {
 
                     {/* Menu Items */}
                     <div className="py-2">
+                      <Link
+                        to={dashboardPath}
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Dashboard
+                      </Link>
                       <Link
                         to={`/profile/${user.id}`}
                         onClick={() => setProfileOpen(false)}
@@ -264,8 +318,8 @@ export function CollapsibleNavbar() {
         >
           {/* Navigation Items */}
           <div className="flex-1 overflow-y-auto py-4 space-y-1">
-            {/* Public Items */}
-            {navItems.map((item) => (
+            {/* Public Items (only for logged-out users) */}
+            {!isAuthenticated && publicNavItems.map((item) => (
               <NavItem
                 key={item.path}
                 icon={item.icon}
@@ -280,16 +334,56 @@ export function CollapsibleNavbar() {
             {/* Authenticated Content */}
             {isAuthenticated && (
               <>
-                <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
-
-                {/* Developer-Specific Section */}
+                {/* Developer Sidebar */}
                 {isDeveloper && (
                   <>
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
-                    <SectionLabel label="Developer" icon="👨‍💻" isHovered={isHovered} />
-                    {developerNavItems.map((item) => (
+                    <SectionLabel label="Main" icon="🏠" isHovered={isHovered} />
+                    {developerMainItems.map((item) => (
                       <NavItem
                         key={item.path}
+                        icon={item.icon}
+                        label={item.label}
+                        path={item.path}
+                        isActive={isActive(item.path)}
+                        isHovered={isHovered}
+                        onClick={() => setIsMobileOpen(false)}
+                      />
+                    ))}
+
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <SectionLabel label="Work" icon="💼" isHovered={isHovered} />
+                    {developerWorkItems.map((item) => (
+                      <NavItem
+                        key={item.path}
+                        icon={item.icon}
+                        label={item.label}
+                        path={item.path}
+                        isActive={isActive(item.path)}
+                        isHovered={isHovered}
+                        onClick={() => setIsMobileOpen(false)}
+                      />
+                    ))}
+
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <SectionLabel label="Marketplace" icon="🛒" isHovered={isHovered} />
+                    {developerMarketplaceItems.map((item) => (
+                      <NavItem
+                        key={item.label}
+                        icon={item.icon}
+                        label={item.label}
+                        path={item.path}
+                        badge={item.badge}
+                        isActive={isActive(item.path)}
+                        isHovered={isHovered}
+                        onClick={() => setIsMobileOpen(false)}
+                      />
+                    ))}
+
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <SectionLabel label="Money" icon="💰" isHovered={isHovered} />
+                    {developerMoneyItems.map((item) => (
+                      <NavItem
+                        key={item.label}
                         icon={item.icon}
                         label={item.label}
                         path={item.path}
@@ -301,12 +395,11 @@ export function CollapsibleNavbar() {
                   </>
                 )}
 
-                {/* Client-Specific Section */}
+                {/* Client Sidebar */}
                 {isUser && (
                   <>
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
-                    <SectionLabel label="Client" icon="👤" isHovered={isHovered} />
-                    {clientNavItems.map((item) => (
+                    <SectionLabel label="Main" icon="🏠" isHovered={isHovered} />
+                    {clientMainItems.map((item) => (
                       <NavItem
                         key={item.path}
                         icon={item.icon}
@@ -317,38 +410,36 @@ export function CollapsibleNavbar() {
                         onClick={() => setIsMobileOpen(false)}
                       />
                     ))}
+
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <SectionLabel label="Hire" icon="📝" isHovered={isHovered} />
+                    {clientHireItems.map((item) => (
+                      <NavItem
+                        key={item.label}
+                        icon={item.icon}
+                        label={item.label}
+                        path={item.path}
+                        isActive={isActive(item.path)}
+                        isHovered={isHovered}
+                        onClick={() => setIsMobileOpen(false)}
+                      />
+                    ))}
+
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <SectionLabel label="Marketplace" icon="🛍️" isHovered={isHovered} />
+                    {clientMarketplaceItems.map((item) => (
+                      <NavItem
+                        key={item.label}
+                        icon={item.icon}
+                        label={item.label}
+                        path={item.path}
+                        isActive={isActive(item.path)}
+                        isHovered={isHovered}
+                        onClick={() => setIsMobileOpen(false)}
+                      />
+                    ))}
                   </>
                 )}
-
-                {/* Common Tools Section */}
-                <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
-                <SectionLabel label="Tools" icon="🛠️" isHovered={isHovered} />
-                {commonNavItems.map((item) => (
-                  <NavItem
-                    key={item.path}
-                    icon={item.icon}
-                    label={item.label}
-                    path={item.path}
-                    isActive={isActive(item.path)}
-                    isHovered={isHovered}
-                    onClick={() => setIsMobileOpen(false)}
-                  />
-                ))}
-
-                {/* Marketplace Section */}
-                <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
-                <SectionLabel label="Marketplace" icon="🏪" isHovered={isHovered} />
-                {marketplaceItems.map((item) => (
-                  <NavItem
-                    key={item.path}
-                    icon={item.icon}
-                    label={item.label}
-                    path={item.path}
-                    isActive={isActive(item.path)}
-                    isHovered={isHovered}
-                    onClick={() => setIsMobileOpen(false)}
-                  />
-                ))}
 
                 {/* Admin Section */}
                 {user?.role === 'admin' && (
@@ -409,6 +500,7 @@ const NavItem = ({
   icon: Icon, 
   label, 
   path, 
+  badge,
   isActive, 
   isHovered, 
   onClick, 
@@ -430,9 +522,16 @@ const NavItem = ({
     <Icon className="w-5 h-5 shrink-0" />
     
     {isHovered && (
-      <span className="text-sm font-medium whitespace-nowrap transition-opacity duration-300">
-        {label}
-      </span>
+      <div className="flex items-center justify-between w-full min-w-0 gap-2">
+        <span className="text-sm font-medium whitespace-nowrap transition-opacity duration-300 truncate">
+          {label}
+        </span>
+        {badge && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-700 shrink-0">
+            {badge}
+          </span>
+        )}
+      </div>
     )}
   </Link>
 )

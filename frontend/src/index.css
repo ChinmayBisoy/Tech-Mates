@@ -10,6 +10,17 @@
   body {
     @apply antialiased;
   }
+
+  @keyframes home-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @layer components {
@@ -31,5 +42,13 @@
 
   .input {
     @apply w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-base text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-colors;
+  }
+
+  .home-fade-up {
+    animation: home-fade-up 520ms ease-out both;
+  }
+
+  .home-fade-up-delay {
+    animation-delay: 120ms;
   }
 }

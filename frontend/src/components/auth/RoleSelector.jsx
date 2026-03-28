@@ -24,12 +24,14 @@ export function RoleSelector({ value, onChange }) {
           key={role.id}
           onClick={() => onChange(role.id)}
           className={cn(
-            'relative p-8 rounded-xl border-2 transition-all duration-200 text-left',
+            'group relative overflow-hidden rounded-2xl border-2 p-8 text-left transition-all duration-300 hover:-translate-y-1',
             value === role.id
-              ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
-              : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-surface hover:border-primary-400 dark:hover:border-primary-500'
+              ? 'border-primary-600 bg-gradient-to-br from-primary-50 to-accent-50 shadow-lg shadow-primary-100/70 dark:from-primary-900/30 dark:to-accent-900/10'
+              : 'border-gray-200 bg-white hover:border-primary-400 hover:shadow-md dark:border-gray-700 dark:bg-base dark:hover:border-primary-500'
           )}
         >
+          <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary-100/80 blur-2xl dark:bg-primary-800/20" />
+
           {/* Checkmark */}
           {value === role.id && (
             <div className="absolute top-4 right-4 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
@@ -46,6 +48,10 @@ export function RoleSelector({ value, onChange }) {
           </h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm">
             {role.description}
+          </p>
+
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.08em] text-primary-700 dark:text-accent">
+            {value === role.id ? 'Selected' : 'Choose this role'}
           </p>
         </button>
       ))}

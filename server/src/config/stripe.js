@@ -1,5 +1,5 @@
-// Replace the hardcoded 'sk_test_...' with this:
-const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+const Stripe = require('stripe');
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
