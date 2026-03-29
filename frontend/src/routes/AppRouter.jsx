@@ -10,6 +10,7 @@ import { PageLoader } from '@/components/shared/PageLoader'
 const PostRequirementPage = lazy(() => import('@/pages/se-market/PostRequirement'))
 const MyRequirementsPage = lazy(() => import('@/pages/se-market/MyRequirements'))
 const MyProposalsPage = lazy(() => import('@/pages/se-market/MyProposals'))
+const ProposalsReceivedPage = lazy(() => import('@/pages/se-market/ProposalsReceived'))
 
 // Lazy imports for Projects/Marketplace pages
 const BrowseListings = lazy(() => import('@/pages/projects/BrowseListings'))
@@ -33,7 +34,8 @@ const NotificationsPage = lazy(() => import('@/pages/Notifications'))
 const SettingsPage = lazy(() => import('@/pages/Settings'))
 const HelpPage = lazy(() => import('@/pages/Help'))
 const AdminPage = lazy(() => import('@/pages/Admin'))
-const UserProfilePage = lazy(() => import('@/pages/UserProfile'))
+const UserProfilePage = lazy(() => import('@/pages/profile/PublicProfile').then((module) => ({ default: module.PublicProfile })))
+const ProfileSetupPage = lazy(() => import('@/pages/profile/ProfileSetup'))
 const SearchPage = lazy(() => import('@/pages/Search'))
 const BrowseDevelopersPage = lazy(() => import('@/pages/BrowseDevelopers'))
 
@@ -201,6 +203,16 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: 'se-market/proposals-received',
+        element: (
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <ProposalsReceivedPage />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: 'projects',
         element: <Suspense fallback={<PageLoader />}><BrowseListings /></Suspense>,
       },
@@ -339,6 +351,16 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: 'profile/setup',
+        element: (
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <ProfileSetupPage />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: 'search',
         element: (
           <Suspense fallback={<PageLoader />}>
@@ -374,13 +396,6 @@ const router = createBrowserRouter([
         lazy: async () => {
           const ContractDetail = await import('@/pages/contracts/ContractDetail')
           return { Component: ContractDetail.default }
-        },
-      },
-      {
-        path: 'profile/:id',
-        lazy: async () => {
-          const { PublicProfile } = await import('@/pages/profile/PublicProfile')
-          return { Component: PublicProfile }
         },
       },
       {

@@ -40,16 +40,28 @@ const getMyProfile = asyncHandler(async (req, res) => {
     throw new ApiError(403, 'Account is not available');
   }
 
-  res.json(new ApiResponse(200, user.toPublicProfile(), 'Profile fetched successfully'));
+  res.json(
+    new ApiResponse(
+      200,
+      {
+        ...user.toPublicProfile(),
+        email: user.email,
+      },
+      'Profile fetched successfully'
+    )
+  );
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
   const allowedFields = [
     'name',
+    'username',
     'bio',
     'skills',
     'location',
     'website',
+    'linkedin',
+    'instagram',
     'githubUsername',
     'portfolioLinks',
   ];
@@ -63,16 +75,33 @@ const updateProfile = asyncHandler(async (req, res) => {
     }
   });
 
-  const user = await User.findByIdAndUpdate(req.user._id, updates, {
-    new: true,
-    runValidators: true,
-  }).select('-password -refreshToken');
+  let user;
+  try {
+    user = await User.findByIdAndUpdate(req.user._id, updates, {
+      new: true,
+      runValidators: true,
+    }).select('-password -refreshToken');
+  } catch (error) {
+    if (error?.code === 11000 && error?.keyPattern?.username) {
+      throw new ApiError(409, 'Username is already taken');
+    }
+    throw error;
+  }
 
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
 
-  res.json(new ApiResponse(200, user.toPublicProfile(), 'Profile updated successfully'));
+  res.json(
+    new ApiResponse(
+      200,
+      {
+        ...user.toPublicProfile(),
+        email: user.email,
+      },
+      'Profile updated successfully'
+    )
+  );
 });
 
 const uploadAvatar = asyncHandler(async (req, res) => {
@@ -225,7 +254,8 @@ const searchDevelopers = asyncHandler(async (req, res) => {
   }
 
   if (queryInput.search) {
-    query.name = { $regex: String(queryInput.search), $options: 'i' };
+    const searchPattern = { $regex: String(queryInput.search), $options: 'i' };
+    query.$or = [{ name: searchPattern }, { username: searchPattern }];
   }
 
   const sortBy = queryInput.sortBy || 'rating';

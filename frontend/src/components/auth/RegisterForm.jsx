@@ -78,8 +78,8 @@ export function RegisterForm({ role, onSuccess }) {
       const response = await authAPI.register(registerData)
 
       if (response.success) {
-        const { user, token } = response
-        setAuth(user, token)
+        const { user, token, refreshToken } = response
+        setAuth(user, token, refreshToken)
         toast.success('Account created successfully!')
         reset()
         if (onSuccess) onSuccess()

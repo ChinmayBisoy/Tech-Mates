@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/store/authStore'
+import { isProfileComplete } from '@/utils/profileCompletion'
 
 export const useAuth = () => {
   const user = useAuthStore((state) => state.user)
@@ -18,6 +19,7 @@ export const useAuth = () => {
     logout,
     clearAuth,
     isAuthenticated: isAuthenticated(),
+    isProfileComplete: isProfileComplete(user),
     isAdmin: user?.role === 'admin',
     isUser: user?.role === 'user' || user?.role === 'client',
     isDeveloper: user?.role === 'developer',

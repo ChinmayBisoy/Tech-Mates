@@ -47,7 +47,7 @@ export function ContractCard({ contract }) {
   const progress = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
 
   // Calculate total value
-  const totalValue = contract.milestones?.reduce((sum, m) => sum + m.amount, 0) || 0;
+  const totalValue = contract.milestones?.reduce((sum, m) => sum + m.amount, 0) || contract.totalAmount || 0;
   const completedValue = contract.milestones
     ?.filter((m) => ['approved', 'released'].includes(m.status))
     .reduce((sum, m) => sum + m.amount, 0) || 0;

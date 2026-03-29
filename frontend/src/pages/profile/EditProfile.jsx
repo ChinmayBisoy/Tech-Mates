@@ -16,13 +16,20 @@ import { cn } from '@/utils/cn'
 
 const editProfileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
+  username: z
+    .string()
+    .trim()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be at most 30 characters')
+    .regex(/^[a-z0-9._]+$/, 'Use lowercase letters, numbers, dots, or underscores only'),
   email: z.string().email('Invalid email'),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
   location: z.string().optional(),
-  portfolio: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  portfolioLinks: z.string().optional(),
   website: z.string().url('Must be a valid URL').optional().or(z.literal('')),
-  github: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  githubUsername: z.string().optional(),
   linkedin: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  instagram: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   skills: z.array(z.string()).optional(),
 })
 
@@ -44,7 +51,7 @@ export function EditProfile() {
     queryFn: () => userAPI.getMe(),
   })
 
-  const profile = profileResponse?.data || {}
+  const profile = profileResponse || {}
 
   const {
     register,
@@ -56,13 +63,15 @@ export function EditProfile() {
     resolver: zodResolver(editProfileSchema),
     values: {
       name: profile.name || '',
+      username: profile.username || '',
       email: profile.email || '',
       bio: profile.bio || '',
       location: profile.location || '',
-      portfolio: profile.portfolio || '',
+      portfolioLinks: Array.isArray(profile.portfolioLinks) ? profile.portfolioLinks.join(', ') : '',
       website: profile.website || '',
-      github: profile.github || '',
+      githubUsername: profile.githubUsername || '',
       linkedin: profile.linkedin || '',
+      instagram: profile.instagram || '',
       skills: profile.skills || [],
     },
   })
@@ -70,7 +79,7 @@ export function EditProfile() {
   const uploadAvatarMutation = useMutation({
     mutationFn: (file) => userAPI.uploadAvatar(file),
     onSuccess: (response) => {
-      const updatedProfile = response.data
+      const updatedProfile = response
       updateUser(updatedProfile)
       queryClient.setQueryData(['profile', 'edit'], response)
       setAvatarPreview(null)
@@ -84,13 +93,14 @@ export function EditProfile() {
   const updateProfileMutation = useMutation({
     mutationFn: (data) => userAPI.updateProfile(data),
     onSuccess: (response) => {
-      const updatedProfile = response.data
+      const updatedProfile = response
       updateUser(updatedProfile)
       queryClient.setQueryData(['profile', 'edit'], response)
       toast.success('Profile updated successfully')
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to update profile')
+      const firstError = error.response?.data?.errors?.[0]?.message
+      toast.error(firstError || error.response?.data?.message || 'Failed to update profile')
     },
   })
 
@@ -122,7 +132,36 @@ export function EditProfile() {
   }
 
   const onSubmit = async (data) => {
-    updateProfileMutation.mutate(data)
+    const payload = {
+      name: data.name,
+      username: data.username,
+      bio: data.bio,
+      location: data.location,
+      website: data.website,
+      linkedin: data.linkedin,
+      instagram: data.instagram,
+      githubUsername: data.githubUsername,
+      skills: data.skills,
+      portfolioLinks: (data.portfolioLinks || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+    }
+
+    // Backend URL fields are optional, so send them only when non-empty.
+    const sanitizedPayload = Object.fromEntries(
+      Object.entries(payload).filter(([key, value]) => {
+        if (Array.isArray(value)) {
+          return value.length > 0
+        }
+        if (typeof value === 'string') {
+          return value.trim().length > 0
+        }
+        return value !== undefined && value !== null
+      })
+    )
+
+    updateProfileMutation.mutate(sanitizedPayload)
   }
 
   const toggleSkill = (skill) => {
@@ -237,6 +276,21 @@ export function EditProfile() {
               )}
             </div>
 
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Username
+              </label>
+              <input
+                id="username"
+                type="text"
+                className="input"
+                {...register('username')}
+              />
+              {errors.username && (
+                <p className="text-danger text-sm mt-1">{errors.username.message}</p>
+              )}
+            </div>
+
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
@@ -292,19 +346,19 @@ export function EditProfile() {
               </h3>
 
               <div>
-                <label htmlFor="portfolio" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  Portfolio URL
+                <label htmlFor="portfolioLinks" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  Portfolio URLs (comma separated)
                 </label>
                 <input
-                  id="portfolio"
-                  type="url"
-                  placeholder="https://yourportfolio.com"
+                  id="portfolioLinks"
+                  type="text"
+                  placeholder="https://portfolio1.com, https://portfolio2.com"
                   className="input"
-                  {...register('portfolio')}
+                  {...register('portfolioLinks')}
                 />
-                {errors.portfolio && (
+                {errors.portfolioLinks && (
                   <p className="text-danger text-sm mt-1">
-                    {errors.portfolio.message}
+                    {errors.portfolioLinks.message}
                   </p>
                 )}
               </div>
@@ -328,19 +382,19 @@ export function EditProfile() {
               </div>
 
               <div>
-                <label htmlFor="github" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  GitHub URL
+                <label htmlFor="githubUsername" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  GitHub Username
                 </label>
                 <input
-                  id="github"
-                  type="url"
-                  placeholder="https://github.com/yourprofile"
+                  id="githubUsername"
+                  type="text"
+                  placeholder="yourusername"
                   className="input"
-                  {...register('github')}
+                  {...register('githubUsername')}
                 />
-                {errors.github && (
+                {errors.githubUsername && (
                   <p className="text-danger text-sm mt-1">
-                    {errors.github.message}
+                    {errors.githubUsername.message}
                   </p>
                 )}
               </div>
@@ -359,6 +413,24 @@ export function EditProfile() {
                 {errors.linkedin && (
                   <p className="text-danger text-sm mt-1">
                     {errors.linkedin.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="instagram" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  Instagram URL
+                </label>
+                <input
+                  id="instagram"
+                  type="url"
+                  placeholder="https://instagram.com/yourprofile"
+                  className="input"
+                  {...register('instagram')}
+                />
+                {errors.instagram && (
+                  <p className="text-danger text-sm mt-1">
+                    {errors.instagram.message}
                   </p>
                 )}
               </div>

@@ -9,6 +9,10 @@ const instance = axios.create({
 let isRefreshing = false
 let failedQueue = []
 
+const shouldSkipRefresh = (url = '') => {
+  return url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh-token')
+}
+
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -42,7 +46,11 @@ instance.interceptors.response.use(
   (error) => {
     const originalRequest = error.config
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (!originalRequest) {
+      return Promise.reject(error)
+    }
+
+    if (error.response?.status === 401 && !originalRequest._retry && !shouldSkipRefresh(originalRequest.url)) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -61,13 +69,29 @@ instance.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      return instance
-        .post('/auth/refresh-token', {})
-        .then((response) => {
-          const { data } = response.data
-          const newAccessToken = data.accessToken || data.token
+      const { user, refreshToken } = useAuthStore.getState()
 
-          useAuthStore.getState().setAuth(useAuthStore.getState().user, newAccessToken)
+      if (!refreshToken) {
+        useAuthStore.getState().clearAuth()
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
+
+      return axios
+        .post(
+          `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
+          { refreshToken },
+          { withCredentials: true }
+        )
+        .then((response) => {
+          const payload = response.data?.data ?? response.data
+          const newAccessToken = payload?.accessToken || payload?.token
+
+          if (!newAccessToken) {
+            throw new Error('No access token returned from refresh endpoint')
+          }
+
+          useAuthStore.getState().setAuth(user, newAccessToken, payload?.refreshToken || refreshToken)
 
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
           processQueue(null, newAccessToken)

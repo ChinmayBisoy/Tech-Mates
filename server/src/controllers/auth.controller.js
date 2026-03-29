@@ -34,10 +34,16 @@ async function userRegisterController(req, res){
         const newUser = new userModel({ email, name, password, role });
         const user = await newUser.save();
 
-        // Generate JWT token
+        // Generate access and refresh tokens
         const token = jwt.sign(
-            { id: user._id, email: user.email },
+            { _id: user._id, email: user.email, role: user.role },
             process.env.JWT_SECRET || 'your_jwt_secret_key',
+            { expiresIn: '15m' }
+        );
+
+        const refreshToken = jwt.sign(
+            { _id: user._id, email: user.email, role: user.role },
+            process.env.REFRESH_TOKEN || process.env.JWT_SECRET || 'your_refresh_secret_key',
             { expiresIn: '7d' }
         );
 
@@ -63,9 +69,15 @@ async function userRegisterController(req, res){
                 id: user._id,
                 email: user.email,
                 name: user.name,
-                role: user.role
+                username: user.username || '',
+                avatar: user.avatar || '',
+                bio: user.bio || '',
+                skills: user.skills || [],
+                role: user.role,
+                isProfileComplete: user.isProfileComplete()
             },
-            token: token
+            token: token,
+            refreshToken: refreshToken
         });
 
     } catch(error){
@@ -142,7 +154,12 @@ async function userLoginController(req, res){
                 id: user._id,
                 email: user.email,
                 name: user.name,
-                role: user.role
+                username: user.username || '',
+                avatar: user.avatar || '',
+                bio: user.bio || '',
+                skills: user.skills || [],
+                role: user.role,
+                isProfileComplete: user.isProfileComplete()
             },
             token: accessToken,
             refreshToken: refreshToken

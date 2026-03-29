@@ -32,8 +32,8 @@ export function LoginForm({ onSuccess }) {
       const response = await authAPI.login(data)
 
       if (response.success) {
-        const { user, token } = response
-        setAuth(user, token)
+        const { user, token, refreshToken } = response
+        setAuth(user, token, refreshToken)
         toast.success('Logged in successfully!')
         reset()
         if (onSuccess) onSuccess()

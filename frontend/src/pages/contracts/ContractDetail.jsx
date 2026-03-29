@@ -96,7 +96,27 @@ export default function ContractDetail() {
     },
   });
 
-  const contract = contractQuery.data;
+  const rawContract = contractQuery.data;
+  const contract = rawContract
+    ? {
+        ...rawContract,
+        id: rawContract?.id || rawContract?._id,
+        client: {
+          ...(rawContract?.client || rawContract?.clientId || {}),
+          id: rawContract?.client?.id || rawContract?.client?._id || rawContract?.clientId?._id || rawContract?.clientId,
+          name: rawContract?.client?.name || rawContract?.clientId?.name || 'Client',
+          avatar: rawContract?.client?.avatar || rawContract?.clientId?.avatar,
+          createdAt: rawContract?.client?.createdAt || rawContract?.clientId?.createdAt,
+        },
+        developer: {
+          ...(rawContract?.developer || rawContract?.developerId || {}),
+          id: rawContract?.developer?.id || rawContract?.developer?._id || rawContract?.developerId?._id || rawContract?.developerId,
+          name: rawContract?.developer?.name || rawContract?.developerId?.name || 'Developer',
+          avatar: rawContract?.developer?.avatar || rawContract?.developerId?.avatar,
+          createdAt: rawContract?.developer?.createdAt || rawContract?.developerId?.createdAt,
+        },
+      }
+    : null;
 
   if (contractQuery.isLoading) {
     return (
@@ -130,7 +150,13 @@ export default function ContractDetail() {
     );
   }
 
-  const userRole = isUser && contract.client.id === user?.id ? 'client' : isDeveloper && contract.developer.id === user?.id ? 'developer' : 'viewer';
+  const currentUserId = user?.id || user?._id;
+  const userRole =
+    isUser && String(contract.client.id) === String(currentUserId)
+      ? 'client'
+      : isDeveloper && String(contract.developer.id) === String(currentUserId)
+        ? 'developer'
+        : 'viewer';
   const totalValue = contract.milestones?.reduce((sum, m) => sum + m.amount, 0) || 0;
   const completedValue = contract.milestones
     ?.filter((m) => ['approved', 'released'].includes(m.status))

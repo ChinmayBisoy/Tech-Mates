@@ -17,7 +17,7 @@ export function Register() {
   }
 
   const handleRegisterSuccess = () => {
-    navigate('/dashboard')
+    navigate('/profile/setup')
   }
 
   return (

@@ -71,7 +71,14 @@ export default function MyRequirements() {
     closed: requirements.filter((r) => r.status === 'closed').length,
   };
 
+  const getRequirementId = (requirement) => requirement?._id || requirement?.id;
+
   const handleAction = (action, requirementId) => {
+    if (!requirementId) {
+      toast.error('Invalid requirement ID');
+      return;
+    }
+
     if (action === 'close') {
       if (window.confirm('Are you sure you want to close this requirement? New proposals won\'t be accepted.')) {
         closeMutation.mutate(requirementId);
@@ -175,20 +182,20 @@ export default function MyRequirements() {
         ) : (
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
             {requirements.map((requirement) => (
-              <div key={requirement.id} className="relative">
+              <div key={getRequirementId(requirement)} className="relative">
                 <RequirementCard requirement={requirement} />
                 
                 {/* Actions Overlay */}
                 <div className="mt-3 flex gap-2 flex-wrap">
                   <button
-                    onClick={() => navigate(`/se-market/requirement/${requirement.id}`)}
+                    onClick={() => navigate(`/se-market/requirement/${getRequirementId(requirement)}`)}
                     className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 dark:bg-accent dark:hover:bg-accent/90"
                   >
                     View Details
                   </button>
                   {requirement.status === 'open' && (
                     <button
-                      onClick={() => handleAction('close', requirement.id)}
+                      onClick={() => handleAction('close', getRequirementId(requirement))}
                       disabled={closeMutation.isPending}
                       className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
                     >
@@ -196,7 +203,7 @@ export default function MyRequirements() {
                     </button>
                   )}
                   <button
-                    onClick={() => handleAction('delete', requirement.id)}
+                    onClick={() => handleAction('delete', getRequirementId(requirement))}
                     disabled={deleteMutation.isPending}
                     className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20"
                   >

@@ -128,19 +128,20 @@ export default function PostRequirement() {
   const minDate = tomorrow.toISOString().split('T')[0];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 dark:bg-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/40 to-cyan-50/50 py-12 dark:bg-gray-950">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Post a Requirement</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <div className="rounded-2xl border border-indigo-200/70 bg-gradient-to-r from-indigo-600 to-cyan-500 px-6 py-8 shadow-xl shadow-indigo-200/60 dark:border-transparent dark:bg-none dark:p-0 dark:shadow-none">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-100 dark:hidden">Service Exchange Market</p>
+          <h1 className="text-3xl font-bold text-white dark:text-white">Post a Requirement</h1>
+          <p className="mt-2 text-indigo-100 dark:text-gray-400">
             Tell developers what you need and get quality proposals
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="mt-8 space-y-6 rounded-lg border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-900">
+        <form onSubmit={onSubmit} className="mt-8 space-y-6 rounded-3xl border border-indigo-200/70 bg-white/95 p-8 shadow-2xl shadow-indigo-100/60 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900">
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-semibold text-gray-900 dark:text-white">
+            <label htmlFor="title" className="block text-sm font-semibold text-slate-900 dark:text-white">
               Project Title <span className="text-red-500">*</span>
             </label>
             <input
@@ -148,16 +149,16 @@ export default function PostRequirement() {
               id="title"
               {...register('title')}
               maxLength={100}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 bg-white text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
               placeholder="Build a React dashboard for my business"
             />
             {errors.title && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.title.message}</p>}
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Maximum 100 characters</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-gray-400">Maximum 100 characters</p>
           </div>
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-900 dark:text-white">
+            <label htmlFor="description" className="block text-sm font-semibold text-slate-900 dark:text-white">
               Project Description <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -165,22 +166,22 @@ export default function PostRequirement() {
               {...register('description')}
               rows={6}
               maxLength={2000}
-              className="mt-2 w-full resize-none rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full resize-none rounded-xl border border-slate-300 px-4 py-3 bg-white text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
               placeholder="Describe your project requirements, goals, scope, and any specific requirements..."
             />
             {errors.description && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.description.message}</p>}
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Minimum 50, maximum 2000 characters</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-gray-400">Minimum 50, maximum 2000 characters</p>
           </div>
 
           {/* Category */}
           <div>
-            <label htmlFor="category" className="block text-sm font-semibold text-gray-900 dark:text-white">
+            <label htmlFor="category" className="block text-sm font-semibold text-slate-900 dark:text-white">
               Category <span className="text-red-500">*</span>
             </label>
             <select
               id="category"
               {...register('category')}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 bg-white text-slate-900 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
             >
               <option value="">Select a category</option>
               {CATEGORIES.map((cat) => (
@@ -194,7 +195,7 @@ export default function PostRequirement() {
 
           {/* Skills */}
           <div>
-            <label className="block text-sm font-semibold text-gray-900 dark:text-white">
+            <label className="block text-sm font-semibold text-slate-900 dark:text-white">
               Required Skills <span className="text-red-500">*</span>
             </label>
             <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -205,8 +206,8 @@ export default function PostRequirement() {
                   onClick={() => toggleSkill(skill)}
                   className={`rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
                     selectedSkills.includes(skill)
-                      ? 'bg-primary text-white dark:bg-accent'
-                      : 'border border-gray-300 text-gray-700 hover:border-primary dark:border-gray-600 dark:text-gray-300 dark:hover:border-accent'
+                      ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-md shadow-primary-200/70 dark:bg-accent'
+                      : 'border border-slate-300 bg-white text-slate-700 hover:border-primary hover:bg-primary-50/70 dark:border-gray-600 dark:text-gray-300 dark:hover:border-accent'
                   }`}
                 >
                   {skill}
@@ -218,7 +219,7 @@ export default function PostRequirement() {
                 {errors.skills?.message || 'Please select at least one skill'}
               </p>
             )}
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-2 text-xs text-slate-500 dark:text-gray-400">
               Selected: {selectedSkills.length}/10 skills
             </p>
           </div>
@@ -226,27 +227,27 @@ export default function PostRequirement() {
           {/* Budget */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="budgetMin" className="block text-sm font-semibold text-gray-900 dark:text-white">
+              <label htmlFor="budgetMin" className="block text-sm font-semibold text-slate-900 dark:text-white">
                 Min Budget (₹) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
                 {...register('budget.min', { valueAsNumber: true })}
                 min={100}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 bg-white text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
                 placeholder="10000"
               />
               {errors.budget?.min && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.budget.min.message}</p>}
             </div>
             <div>
-              <label htmlFor="budgetMax" className="block text-sm font-semibold text-gray-900 dark:text-white">
+              <label htmlFor="budgetMax" className="block text-sm font-semibold text-slate-900 dark:text-white">
                 Max Budget (₹) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
                 {...register('budget.max', { valueAsNumber: true })}
                 min={100}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 bg-white text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
                 placeholder="50000"
               />
               {errors.budget?.max && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.budget.max.message}</p>}
@@ -255,7 +256,7 @@ export default function PostRequirement() {
 
           {/* Deadline */}
           <div>
-            <label htmlFor="deadline" className="block text-sm font-semibold text-gray-900 dark:text-white">
+            <label htmlFor="deadline" className="block text-sm font-semibold text-slate-900 dark:text-white">
               Deadline <span className="text-red-500">*</span>
             </label>
             <input
@@ -263,21 +264,21 @@ export default function PostRequirement() {
               id="deadline"
               {...register('deadline')}
               min={minDate}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 bg-white text-slate-900 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
             />
             {errors.deadline && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.deadline.message}</p>}
           </div>
 
           {/* Location */}
           <div>
-            <label htmlFor="location" className="block text-sm font-semibold text-gray-900 dark:text-white">
-              Location <span className="text-gray-500 text-sm font-normal">(Optional)</span>
+            <label htmlFor="location" className="block text-sm font-semibold text-slate-900 dark:text-white">
+              Location <span className="text-slate-500 text-sm font-normal">(Optional)</span>
             </label>
             <input
               type="text"
               id="location"
               {...register('location')}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
+              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 bg-white text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
               placeholder="e.g., Bangalore, India (Remote accepted)"
             />
           </div>
@@ -287,7 +288,7 @@ export default function PostRequirement() {
             <button
               type="submit"
               disabled={isSubmitting || createMutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary-600 py-3 font-bold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-accent-600 dark:hover:bg-accent-700"
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-accent-500 py-3 font-bold text-white shadow-lg shadow-primary-300/50 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary-300/60 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-accent-600 dark:hover:bg-accent-700"
             >
               {isSubmitting || createMutation.isPending ? (
                 <>
@@ -301,7 +302,7 @@ export default function PostRequirement() {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+              className="rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Cancel
             </button>

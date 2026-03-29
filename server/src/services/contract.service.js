@@ -68,12 +68,16 @@ const getContracts = async (userId, role, pagination = {}) => {
   const { page, limit, skip } = normalizePagination(pagination);
 
   const query = { isDeleted: false };
-  if (role === 'client') {
+  if (role === 'client' || role === 'user') {
     query.clientId = userId;
   } else if (role === 'developer') {
     query.developerId = userId;
   } else {
     throw new ApiError(403, 'Invalid role for contract access');
+  }
+
+  if (pagination.status) {
+    query.status = pagination.status;
   }
 
   const [items, total] = await Promise.all([

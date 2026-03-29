@@ -1,7 +1,9 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { Edit, ExternalLink, Globe, Github, Linkedin, Instagram } from 'lucide-react'
 import { userAPI } from '@/api/user.api'
 import { reviewAPI } from '@/api/review.api'
+import { useAuth } from '@/hooks/useAuth'
 import { ProfileHeader } from '@/components/profile/ProfileHeader'
 import { SkillTags } from '@/components/profile/SkillTags'
 import { ReviewList } from '@/components/profile/ReviewList'
@@ -9,7 +11,11 @@ import { PageLoader } from '@/components/shared/PageLoader'
 import { ErrorState } from '@/components/shared/ErrorState'
 
 export function PublicProfile() {
-  const { id } = useParams()
+  const { id, userId } = useParams()
+  const profileId = userId || id
+  const navigate = useNavigate()
+  const { user: currentUser } = useAuth()
+  const isOwnProfile = currentUser?._id === profileId
 
   const {
     data: userResponse,
@@ -17,17 +23,25 @@ export function PublicProfile() {
     error: userError,
     refetch: refetchUser,
   } = useQuery({
-    queryKey: ['profile', id],
-    queryFn: () => userAPI.getProfile(id),
-    enabled: !!id,
+    queryKey: ['profile', profileId],
+    queryFn: () => userAPI.getProfile(profileId),
+    enabled: !!profileId,
   })
 
-  const user = userResponse?.data || {}
+  const user = userResponse || {}
+
+  const profileLinks = [
+    ...(Array.isArray(user.portfolioLinks) ? user.portfolioLinks : []),
+  ]
+
+  const githubUrl = user.githubUsername
+    ? `https://github.com/${user.githubUsername.replace(/^@/, '')}`
+    : ''
 
   const { data: reviewsResponse, isLoading: reviewsLoading } = useQuery({
-    queryKey: ['reviews', 'user', id],
-    queryFn: () => reviewAPI.getUserReviews(id),
-    enabled: !!id,
+    queryKey: ['reviews', 'user', profileId],
+    queryFn: () => reviewAPI.getUserReviews(profileId),
+    enabled: !!profileId,
   })
 
   const reviews = reviewsResponse?.reviews || []
@@ -36,7 +50,7 @@ export function PublicProfile() {
 
   if (userError) {
     return (
-      <div className="min-h-screen bg-white dark:bg-base py-12 px-4">
+      <div className="min-h-screen bg-slate-50 py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <ErrorState
             title="Profile not found"
@@ -49,72 +63,81 @@ export function PublicProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-base py-12 px-4">
-      <div className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
-        <ProfileHeader user={user} />
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-indigo-50 to-slate-100 py-8 md:py-12 px-4">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <ProfileHeader
+          user={user}
+          action={
+            isOwnProfile ? (
+              <button
+                onClick={() => navigate('/profile/edit')}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold whitespace-nowrap text-white bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 shadow-md shadow-primary-300/40 transition-all hover:-translate-y-0.5"
+              >
+                <Edit className="w-4 h-4" />
+                Edit Profile
+              </button>
+            ) : null
+          }
+        />
 
-        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* About */}
-            {user.bio && (
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  About
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                  {user.bio}
-                </p>
-              </div>
-            )}
-
-            {/* Skills */}
             {user.skills && user.skills.length > 0 && (
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <div className="rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur p-6 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.4)]">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">
                   Skills
                 </h3>
                 <SkillTags skills={user.skills} />
               </div>
             )}
 
-            {/* Contact Info */}
-            {user.portfolio || user.website || user.github || user.linkedin ? (
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            {profileLinks.length > 0 || user.website || githubUrl || user.linkedin || user.instagram ? (
+              <div className="rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur p-6 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.4)]">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">
                   Links
                 </h3>
                 <div className="space-y-3">
-                  {user.portfolio && (
+                  {profileLinks.map((link, index) => (
                     <a
-                      href={user.portfolio}
+                      key={`${link}-${index}`}
+                      href={link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-primary-600 dark:text-accent hover:text-primary-700 dark:hover:text-accent-400 text-sm font-medium transition-colors truncate"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
                     >
-                      Portfolio
+                      <span className="inline-flex items-center gap-2 truncate">
+                        <Globe className="w-4 h-4 text-slate-500" />
+                        Portfolio {index + 1}
+                      </span>
+                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
                     </a>
-                  )}
+                  ))}
                   {user.website && (
                     <a
                       href={user.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-primary-600 dark:text-accent hover:text-primary-700 dark:hover:text-accent-400 text-sm font-medium transition-colors truncate"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
                     >
-                      Website
+                      <span className="inline-flex items-center gap-2 truncate">
+                        <Globe className="w-4 h-4 text-slate-500" />
+                        Website
+                      </span>
+                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
                     </a>
                   )}
-                  {user.github && (
+                  {githubUrl && (
                     <a
-                      href={user.github}
+                      href={githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-primary-600 dark:text-accent hover:text-primary-700 dark:hover:text-accent-400 text-sm font-medium transition-colors truncate"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
                     >
-                      GitHub
+                      <span className="inline-flex items-center gap-2 truncate">
+                        <Github className="w-4 h-4 text-slate-500" />
+                        GitHub
+                      </span>
+                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
                     </a>
                   )}
                   {user.linkedin && (
@@ -122,9 +145,27 @@ export function PublicProfile() {
                       href={user.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-primary-600 dark:text-accent hover:text-primary-700 dark:hover:text-accent-400 text-sm font-medium transition-colors truncate"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
                     >
-                      LinkedIn
+                      <span className="inline-flex items-center gap-2 truncate">
+                        <Linkedin className="w-4 h-4 text-slate-500" />
+                        LinkedIn
+                      </span>
+                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                    </a>
+                  )}
+                  {user.instagram && (
+                    <a
+                      href={user.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
+                    >
+                      <span className="inline-flex items-center gap-2 truncate">
+                        <Instagram className="w-4 h-4 text-slate-500" />
+                        Instagram
+                      </span>
+                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
                     </a>
                   )}
                 </div>
@@ -132,16 +173,14 @@ export function PublicProfile() {
             ) : null}
           </div>
 
-          {/* Right Content */}
           <div className="lg:col-span-2">
-            {/* Reviews */}
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
                 Reviews
               </h2>
               {reviewsLoading ? (
-                <div className="card p-12 text-center">
-                  <p className="text-gray-600 dark:text-gray-400">
+                <div className="rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur p-12 text-center">
+                  <p className="text-slate-600">
                     Loading reviews...
                   </p>
                 </div>

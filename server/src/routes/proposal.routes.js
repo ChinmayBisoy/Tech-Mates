@@ -2,7 +2,7 @@ const express = require('express');
 const proposalController = require('../controllers/proposal.controller');
 const { verifyJWT, requireRole } = require('../middleware/auth.middleware');
 const validate = require('../middleware/validate.middleware');
-const { sendProposalSchema } = require('../validators/proposal.validator');
+const { sendProposalSchema, updateProposalSchema } = require('../validators/proposal.validator');
 
 const router = express.Router();
 
@@ -19,16 +19,18 @@ router.get('/my', verifyJWT, requireRole('developer'), proposalController.getMyP
 router.get(
   '/requirement/:requirementId',
   verifyJWT,
-  requireRole('client'),
+  requireRole('client', 'user'),
   proposalController.getProposalsForRequirement
 );
 
 router.put('/:id/withdraw', verifyJWT, requireRole('developer'), proposalController.withdrawProposal);
 
-router.put('/:id/shortlist', verifyJWT, requireRole('client'), proposalController.shortlistProposal);
+router.put('/:id', verifyJWT, requireRole('developer'), validate(updateProposalSchema), proposalController.updateProposal);
 
-router.put('/:id/reject', verifyJWT, requireRole('client'), proposalController.rejectProposal);
+router.put('/:id/shortlist', verifyJWT, requireRole('client', 'user'), proposalController.shortlistProposal);
 
-router.put('/:id/accept', verifyJWT, requireRole('client'), proposalController.acceptProposal);
+router.put('/:id/reject', verifyJWT, requireRole('client', 'user'), proposalController.rejectProposal);
+
+router.put('/:id/accept', verifyJWT, requireRole('client', 'user'), proposalController.acceptProposal);
 
 module.exports = router;

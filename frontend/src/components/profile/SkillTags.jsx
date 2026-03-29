@@ -1,7 +1,7 @@
 export function SkillTags({ skills = [] }) {
   if (!skills || skills.length === 0) {
     return (
-      <p className="text-gray-600 dark:text-gray-400 text-sm">
+      <p className="text-slate-600 text-sm">
         No skills listed
       </p>
     )
@@ -12,7 +12,7 @@ export function SkillTags({ skills = [] }) {
       {skills.map((skill) => (
         <span
           key={skill}
-          className="inline-flex items-center px-3 py-1 bg-primary-100 dark:bg-primary-600/30 text-primary-700 dark:text-primary-100 rounded-full text-sm font-medium"
+          className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold text-slate-700 bg-gradient-to-r from-sky-100 to-indigo-100 ring-1 ring-sky-200/70 shadow-sm"
         >
           {skill}
         </span>

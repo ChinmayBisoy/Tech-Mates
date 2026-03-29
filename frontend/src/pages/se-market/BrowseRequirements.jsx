@@ -1,216 +1,116 @@
-import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import * as requirementAPI from '@/api/requirement.api';
-import { RequirementCard } from '@/components/se-market/RequirementCard';
-import { RequirementFilters } from '@/components/se-market/RequirementFilters';
-import { SkeletonCard } from '@/components/shared/SkeletonCard';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
-import { Search, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
+import { formatINR } from '@/utils/formatCurrency';
+import { formatDeadline } from '@/utils/formatDate';
+import { Briefcase, Clock3 } from 'lucide-react';
 
-const RESULTS_PER_PAGE = 12;
+const truncateText = (value, maxLength = 140) => {
+  if (typeof value !== 'string') return '';
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength).trimEnd()}...`;
+};
 
 export default function BrowseRequirements() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [localSearch, setLocalSearch] = useState(searchParams.get('search') || '');
-  const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
-
-  // Parse filters from URL
-  const [filters, setFilters] = useState({
-    categories: searchParams.get('categories')?.split(',').filter(Boolean) || [],
-    skills: searchParams.get('skills')?.split(',').filter(Boolean) || [],
-    budgetRange: searchParams.get('budgetRange') || null,
-    deadlineInDays: searchParams.get('deadlineInDays') ? parseInt(searchParams.get('deadlineInDays')) : null,
-    search: localSearch,
+  const { data: openRequirementsResponse, isLoading, error, refetch } = useQuery({
+    queryKey: ['requirements', 'open', 'opportunities-page'],
+    queryFn: () => requirementAPI.fetchOpenRequirements(50),
   });
 
-  // Sync filters to URL
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (localSearch) params.set('search', localSearch);
-    if (filters.categories.length) params.set('categories', filters.categories.join(','));
-    if (filters.skills.length) params.set('skills', filters.skills.join(','));
-    if (filters.budgetRange) params.set('budgetRange', filters.budgetRange);
-    if (filters.deadlineInDays) params.set('deadlineInDays', filters.deadlineInDays);
-    if (page > 1) params.set('page', page);
-
-    setSearchParams(params, { replace: true });
-  }, [filters, localSearch, page, setSearchParams]);
-
-  // Fetch requirements
-  const queryKey = [
-    'requirements',
-    'browse',
-    {
-      search: filters.search,
-      categories: filters.categories,
-      skills: filters.skills,
-      budgetRange: filters.budgetRange,
-      deadlineInDays: filters.deadlineInDays,
-      page,
-      limit: RESULTS_PER_PAGE,
-    },
-  ];
-
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey,
-    queryFn: () =>
-      requirementAPI.fetchRequirements({
-        search: filters.search,
-        categories: filters.categories,
-        skills: filters.skills,
-        budgetRange: filters.budgetRange,
-        deadlineInDays: filters.deadlineInDays,
-        page,
-        limit: RESULTS_PER_PAGE,
-      }),
-    keepPreviousData: true,
-  });
-
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-    setPage(1); // Reset to first page on filter change
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setFilters((prev) => ({
-      ...prev,
-      search: localSearch,
-    }));
-    setPage(1);
-  };
-
-  const requirements = data?.requirements || [];
-  const totalPages = data?.totalPages || 1;
+  const requirements = Array.isArray(openRequirementsResponse?.data)
+    ? openRequirementsResponse.data
+    : Array.isArray(openRequirementsResponse)
+      ? openRequirementsResponse
+      : [];
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 dark:bg-gray-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Briefcase className="h-8 w-8 text-primary dark:text-accent" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Service Exchange Market</h1>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400">
-            Browse projects and opportunities to work on
+        <div className="mb-10 flex flex-col gap-4 text-center lg:text-left">
+          <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-primary-700 dark:text-primary-300 lg:justify-start">
+            <Clock3 className="h-4 w-4" />
+            Live Opportunities
           </p>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Open Opportunities</h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">Fresh requirements from teams looking for developers right now.</p>
+          </div>
         </div>
 
-        {/* Search Bar */}
-        <form onSubmit={handleSearch} className="mb-8">
-          <div className="flex gap-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
-                placeholder="Search by project title, skills, or client name..."
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-accent dark:focus:ring-accent"
-              />
-            </div>
-            <button
-              type="submit"
-              className="rounded-lg bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary/90 dark:bg-accent dark:hover:bg-accent/90"
-            >
-              Search
-            </button>
-          </div>
-        </form>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <RequirementFilters filters={filters} onFilterChange={handleFilterChange} />
-          </div>
-
-          {/* Results */}
-          <div className="lg:col-span-3">
-            {isLoading ? (
-              // Skeleton Loading
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-                {[...Array(6)].map((_, i) => (
-                  <SkeletonCard key={i} />
-                ))}
+        {isLoading ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-base">
+                <div className="mb-4 h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="mb-4 h-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-3 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
               </div>
-            ) : error ? (
-              <ErrorState
-                title="Failed to load requirements"
-                description="An error occurred while loading requirements. Please try again."
-                onRetry={() => refetch()}
-              />
-            ) : requirements.length === 0 ? (
-              <EmptyState
-                icon={Briefcase}
-                title="No requirements found"
-                description={
-                  filters.search || filters.categories.length || filters.skills.length
-                    ? 'Try adjusting your filters to find more projects'
-                    : 'No opportunities available at the moment. Check back later!'
-                }
-              />
-            ) : (
-              <>
-                {/* Results Grid */}
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-                  {requirements.map((requirement) => (
-                    <RequirementCard key={requirement.id} requirement={requirement} />
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="mt-8 flex items-center justify-center gap-2">
-                    <button
-                      disabled={page === 1}
-                      onClick={() => setPage(Math.max(1, page - 1))}
-                      className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Previous
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                      {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                        const pageNum = Math.max(1, page - 2) + i;
-                        if (pageNum > totalPages) return null;
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => setPage(pageNum)}
-                            className={`h-10 w-10 rounded-lg font-semibold transition-colors ${
-                              pageNum === page
-                                ? 'bg-primary text-white dark:bg-accent'
-                                : 'border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800'
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      disabled={page === totalPages}
-                      onClick={() => setPage(Math.min(totalPages, page + 1))}
-                      className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-                    >
-                      Next
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
+            ))}
           </div>
-        </div>
+        ) : error ? (
+          <ErrorState
+            title="Failed to load requirements"
+            description="An error occurred while loading requirements. Please try again."
+            onRetry={() => refetch()}
+          />
+        ) : requirements.length === 0 ? (
+          <EmptyState
+            icon={Briefcase}
+            title="No open requirements at the moment"
+            description="Check back soon for new opportunities."
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {requirements.map((requirement) => {
+              const requirementId = requirement?._id || requirement?.id;
+              const minBudget = requirement?.budget?.min ?? requirement?.budgetMin ?? 0;
+              const maxBudget = requirement?.budget?.max ?? requirement?.budgetMax ?? 0;
+              const skills = requirement?.skills || requirement?.skillsRequired || [];
+
+              return (
+                <Link
+                  key={requirementId}
+                  to={`/se-market/requirement/${requirementId}`}
+                  className="group rounded-2xl border border-indigo-200 bg-gradient-to-b from-indigo-50 to-indigo-100/70 p-6 shadow-sm shadow-indigo-100/70 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-100/80 dark:border-gray-800 dark:bg-none dark:bg-base dark:hover:shadow-primary-900/30"
+                >
+                  <div className="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="line-clamp-2 text-lg font-semibold text-gray-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-accent">
+                        {requirement.title}
+                      </h3>
+                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 break-all overflow-hidden">
+                        {truncateText(requirement.description, 130)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-primary-100 p-2 dark:bg-primary-900/30">
+                      <Briefcase className="h-4 w-4 text-primary-700 dark:text-primary-200" />
+                    </div>
+                  </div>
+
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {skills.slice(0, 4).map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-full bg-primary-100 px-2.5 py-1 text-xs font-medium text-primary-700 dark:bg-primary-800/40 dark:text-primary-200"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
+                    <p className="font-bold text-primary-700 dark:text-accent">
+                      {formatINR(minBudget)} - {formatINR(maxBudget)}
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{formatDeadline(requirement.deadline)}</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

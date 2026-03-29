@@ -3,21 +3,24 @@ const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const contractService = require('../services/contract.service');
 
+const isClientRole = (role) => role === 'client' || role === 'user';
+
 const getContracts = asyncHandler(async (req, res) => {
-  if (!['client', 'developer'].includes(req.user.role)) {
+  if (!isClientRole(req.user.role) && req.user.role !== 'developer') {
     throw new ApiError(403, 'Only clients and developers can access contracts');
   }
 
   const result = await contractService.getContracts(req.user._id, req.user.role, {
     page: req.query.page,
     limit: req.query.limit,
+    status: req.query.status,
   });
 
   res.json(new ApiResponse(200, result.items, 'Contracts fetched successfully', result.pagination));
 });
 
 const getContractById = asyncHandler(async (req, res) => {
-  if (!['client', 'developer'].includes(req.user.role)) {
+  if (!isClientRole(req.user.role) && req.user.role !== 'developer') {
     throw new ApiError(403, 'Only clients and developers can access contracts');
   }
 
@@ -42,7 +45,7 @@ const submitMilestone = asyncHandler(async (req, res) => {
 });
 
 const approveMilestone = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can approve milestones');
   }
 
@@ -52,7 +55,7 @@ const approveMilestone = asyncHandler(async (req, res) => {
 });
 
 const requestRevision = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can request milestone revisions');
   }
 
@@ -67,7 +70,7 @@ const requestRevision = asyncHandler(async (req, res) => {
 });
 
 const disputeMilestone = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can dispute milestones');
   }
 

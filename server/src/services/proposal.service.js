@@ -124,6 +124,32 @@ const getMyProposals = async (developerId, pagination = {}) => {
   };
 };
 
+const updateProposal = async (proposalId, developerId, data) => {
+  const proposal = await Proposal.findOne({ _id: proposalId, isDeleted: false });
+
+  if (!proposal) {
+    throw new ApiError(404, 'Proposal not found');
+  }
+
+  if (String(proposal.developerId) !== String(developerId)) {
+    throw new ApiError(403, 'You are not allowed to update this proposal');
+  }
+
+  if (!['pending', 'shortlisted'].includes(proposal.status)) {
+    throw new ApiError(400, 'Only pending or shortlisted proposals can be edited');
+  }
+
+  proposal.coverLetter = data.coverLetter;
+  proposal.proposedPrice = data.proposedPrice;
+  proposal.deliveryDays = data.deliveryDays;
+  proposal.milestones = data.milestones || proposal.milestones;
+  proposal.portfolioLinks = data.portfolioLinks || proposal.portfolioLinks;
+
+  await proposal.save();
+
+  return proposal;
+};
+
 const withdrawProposal = async (proposalId, developerId) => {
   const proposal = await Proposal.findOne({ _id: proposalId, isDeleted: false });
 
@@ -259,6 +285,7 @@ module.exports = {
   sendProposal,
   getProposalsForRequirement,
   getMyProposals,
+  updateProposal,
   withdrawProposal,
   shortlistProposal,
   rejectProposal,

@@ -20,7 +20,7 @@ const getRequirementDetail = async (id) => {
 }
 
 const getRequirementProposals = async (id) => {
-  const response = await instance.get(`/requirements/${id}/proposals`)
+  const response = await instance.get(`/proposals/requirement/${id}`)
   return response.data
 }
 

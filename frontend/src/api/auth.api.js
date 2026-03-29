@@ -16,8 +16,8 @@ export const authAPI = {
     return response.data
   },
 
-  refreshToken: async () => {
-    const response = await instance.post('/auth/refresh-token')
+  refreshToken: async (refreshToken) => {
+    const response = await instance.post('/auth/refresh-token', { refreshToken })
     return response.data
   },
 

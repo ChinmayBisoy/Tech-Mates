@@ -3,6 +3,8 @@ const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const proposalService = require('../services/proposal.service');
 
+const isClientRole = (role) => role === 'client' || role === 'user';
+
 const sendProposal = asyncHandler(async (req, res) => {
   if (req.user.role !== 'developer') {
     throw new ApiError(403, 'Only developers can send proposals');
@@ -14,7 +16,7 @@ const sendProposal = asyncHandler(async (req, res) => {
 });
 
 const getProposalsForRequirement = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can view requirement proposals');
   }
 
@@ -36,6 +38,16 @@ const getMyProposals = asyncHandler(async (req, res) => {
   res.json(new ApiResponse(200, result.items, 'My proposals fetched successfully', result.pagination));
 });
 
+const updateProposal = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'developer') {
+    throw new ApiError(403, 'Only developers can update proposals');
+  }
+
+  const proposal = await proposalService.updateProposal(req.params.id, req.user._id, req.validatedBody);
+
+  res.json(new ApiResponse(200, proposal, 'Proposal updated successfully'));
+});
+
 const withdrawProposal = asyncHandler(async (req, res) => {
   if (req.user.role !== 'developer') {
     throw new ApiError(403, 'Only developers can withdraw proposals');
@@ -47,7 +59,7 @@ const withdrawProposal = asyncHandler(async (req, res) => {
 });
 
 const shortlistProposal = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can shortlist proposals');
   }
 
@@ -57,7 +69,7 @@ const shortlistProposal = asyncHandler(async (req, res) => {
 });
 
 const rejectProposal = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can reject proposals');
   }
 
@@ -67,7 +79,7 @@ const rejectProposal = asyncHandler(async (req, res) => {
 });
 
 const acceptProposal = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'client') {
+  if (!isClientRole(req.user.role)) {
     throw new ApiError(403, 'Only clients can accept proposals');
   }
 
@@ -80,6 +92,7 @@ module.exports = {
   sendProposal,
   getProposalsForRequirement,
   getMyProposals,
+  updateProposal,
   withdrawProposal,
   shortlistProposal,
   rejectProposal,

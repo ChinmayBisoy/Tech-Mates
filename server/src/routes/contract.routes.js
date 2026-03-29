@@ -18,21 +18,21 @@ router.put(
 router.put(
   '/:id/milestone/:milestoneId/approve',
   verifyJWT,
-  requireRole('client'),
+  requireRole('client', 'user'),
   contractController.approveMilestone
 );
 
 router.put(
   '/:id/milestone/:milestoneId/request-revision',
   verifyJWT,
-  requireRole('client'),
+  requireRole('client', 'user'),
   contractController.requestRevision
 );
 
 router.put(
   '/:id/milestone/:milestoneId/dispute',
   verifyJWT,
-  requireRole('client'),
+  requireRole('client', 'user'),
   contractController.disputeMilestone
 );
 

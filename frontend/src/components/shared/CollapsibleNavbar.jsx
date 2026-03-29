@@ -104,7 +104,7 @@ export function CollapsibleNavbar() {
   const clientHireItems = [
     { icon: FileText, label: 'Post a Requirement', path: '/se-market/post-requirement' },
     { icon: Clock, label: 'My Requirements', path: '/se-market/my-requirements' },
-    { icon: MessageSquare, label: 'Proposals Received', path: '/se-market/my-requirements' },
+    { icon: MessageSquare, label: 'Proposals Received', path: '/se-market/proposals-received' },
     { icon: CheckCircle, label: 'My Contracts', path: '/contracts' },
   ]
 
@@ -317,7 +317,7 @@ export function CollapsibleNavbar() {
           )}
         >
           {/* Navigation Items */}
-          <div className="flex-1 overflow-y-auto py-4 space-y-1">
+          <div className="flex-1 overflow-y-auto py-4 space-y-1.5">
             {/* Public Items (only for logged-out users) */}
             {!isAuthenticated && publicNavItems.map((item) => (
               <NavItem
@@ -350,7 +350,7 @@ export function CollapsibleNavbar() {
                       />
                     ))}
 
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
                     <SectionLabel label="Work" icon="💼" isHovered={isHovered} />
                     {developerWorkItems.map((item) => (
                       <NavItem
@@ -364,7 +364,7 @@ export function CollapsibleNavbar() {
                       />
                     ))}
 
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
                     <SectionLabel label="Marketplace" icon="🛒" isHovered={isHovered} />
                     {developerMarketplaceItems.map((item) => (
                       <NavItem
@@ -379,7 +379,7 @@ export function CollapsibleNavbar() {
                       />
                     ))}
 
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
                     <SectionLabel label="Money" icon="💰" isHovered={isHovered} />
                     {developerMoneyItems.map((item) => (
                       <NavItem
@@ -411,7 +411,7 @@ export function CollapsibleNavbar() {
                       />
                     ))}
 
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
                     <SectionLabel label="Hire" icon="📝" isHovered={isHovered} />
                     {clientHireItems.map((item) => (
                       <NavItem
@@ -425,7 +425,7 @@ export function CollapsibleNavbar() {
                       />
                     ))}
 
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
                     <SectionLabel label="Marketplace" icon="🛍️" isHovered={isHovered} />
                     {clientMarketplaceItems.map((item) => (
                       <NavItem
@@ -444,7 +444,7 @@ export function CollapsibleNavbar() {
                 {/* Admin Section */}
                 {user?.role === 'admin' && (
                   <>
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4 mx-2" />
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
                     <NavItem
                       icon={Shield}
                       label="Admin Panel"

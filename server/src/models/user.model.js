@@ -14,6 +14,17 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:[true, "Name is required for creating an user"],
     },
+    username: {
+        type: String,
+        trim: true,
+        lowercase: true,
+        default: undefined,
+        minlength: [3, 'Username must be at least 3 characters long'],
+        maxlength: [30, 'Username must be at most 30 characters long'],
+        match: [/^[a-z0-9._]+$/, 'Username can only contain lowercase letters, numbers, dots, and underscores'],
+        unique: true,
+        sparse: true,
+    },
     password:{
         type:String,
         required:[true, "Password is required for creating an user"],
@@ -47,6 +58,14 @@ const userSchema = new mongoose.Schema({
         default: '',
     },
     website: {
+        type: String,
+        default: '',
+    },
+    linkedin: {
+        type: String,
+        default: '',
+    },
+    instagram: {
         type: String,
         default: '',
     },
@@ -192,20 +211,33 @@ userSchema.methods.recalculateTier = function () {
     this.tier = 'beginner';
 };
 
+userSchema.methods.isProfileComplete = function () {
+    const hasUsername = typeof this.username === 'string' && this.username.trim().length >= 3;
+    const hasBio = typeof this.bio === 'string' && this.bio.trim().length >= 20;
+    const hasSkills = Array.isArray(this.skills) && this.skills.length > 0;
+    const hasAvatar = typeof this.avatar === 'string' && this.avatar.trim().length > 0;
+
+    return hasUsername && hasBio && hasSkills && hasAvatar;
+};
+
 userSchema.methods.toPublicProfile = function () {
     return {
         _id: this._id,
         name: this.name,
+        username: this.username || '',
         role: this.role,
         avatar: this.avatar || '',
         bio: this.bio || '',
         skills: this.skills || [],
         location: this.location || '',
         website: this.website || '',
+        linkedin: this.linkedin || '',
+        instagram: this.instagram || '',
         githubUsername: this.githubUsername || '',
         portfolioLinks: this.portfolioLinks || [],
         tier: this.tier || 'beginner',
         isPro: Boolean(this.isPro),
+        isProfileComplete: this.isProfileComplete(),
         avgRating: Number(this.avgRating || 0),
         totalReviews: Number(this.totalReviews || 0),
         totalContractsCompleted: Number(this.totalContractsCompleted || 0),

@@ -5,9 +5,11 @@ import { ContractCard } from '@/components/contracts/ContractCard';
 import { SkeletonCard } from '@/components/shared/SkeletonCard';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
+import { useAuth } from '@/hooks/useAuth';
 import { Briefcase, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function ContractList() {
+  const { user, isUser } = useAuth();
   const [statusFilter, setStatusFilter] = useState(null);
   const [expandedStatus, setExpandedStatus] = useState(false);
 
@@ -17,7 +19,32 @@ export default function ContractList() {
     queryFn: () => contractAPI.fetchContracts(1, 50, statusFilter),
   });
 
-  const contracts = contractsQuery.data?.contracts || [];
+  const rawContracts = Array.isArray(contractsQuery.data)
+    ? contractsQuery.data
+    : Array.isArray(contractsQuery.data?.contracts)
+      ? contractsQuery.data.contracts
+      : [];
+
+  const contracts = rawContracts.map((contract) => {
+    const client = contract?.client || contract?.clientId || {};
+    const developer = contract?.developer || contract?.developerId || {};
+
+    return {
+      ...contract,
+      id: contract?.id || contract?._id,
+      client: {
+        id: client?.id || client?._id || contract?.clientId,
+        name: client?.name || 'Client',
+        avatar: client?.avatar,
+      },
+      developer: {
+        id: developer?.id || developer?._id || contract?.developerId,
+        name: developer?.name || 'Developer',
+        avatar: developer?.avatar,
+      },
+      isClientView: isUser && String(client?.id || client?._id || contract?.clientId) === String(user?.id || user?._id),
+    };
+  });
   const statusCounts = {
     active: contracts.filter((c) => c.status === 'active').length,
     completed: contracts.filter((c) => c.status === 'completed').length,
