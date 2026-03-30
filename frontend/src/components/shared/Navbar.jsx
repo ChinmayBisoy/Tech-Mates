@@ -108,10 +108,10 @@ export function Navbar() {
             {/* Dashboard Link - Feature 3 */}
             {isAuthenticated && (
               <Link
-                to={user?.role === 'developer' ? '/dashboard/purchases' : '/projects/my'}
+                to="/dashboard"
                 className={cn(
                   'text-sm font-medium transition-colors flex items-center gap-2',
-                  isActive('/dashboard') || isActive('/projects/my')
+                  isActive('/dashboard')
                     ? 'text-primary-600 dark:text-accent'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 )}
@@ -334,7 +334,7 @@ export function Navbar() {
                 
                 {isAuthenticated && (
                   <Link
-                    to={user?.role === 'developer' ? '/dashboard/purchases' : '/projects/my'}
+                    to="/dashboard"
                     onClick={() => setIsOpen(false)}
                     className="px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-elevated"
                   >

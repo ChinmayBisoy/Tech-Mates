@@ -114,7 +114,7 @@ export function CollapsibleNavbar() {
     { icon: Store, label: 'My Purchases', path: '/dashboard/purchases' },
   ]
 
-  const dashboardPath = user?.role === 'developer' ? '/dashboard/purchases' : '/dashboard'
+  const dashboardPath = '/dashboard'
 
   const isActive = (path) => location.pathname === path
 

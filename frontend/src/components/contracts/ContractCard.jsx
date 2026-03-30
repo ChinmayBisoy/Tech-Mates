@@ -4,7 +4,6 @@ import { formatDate } from '@/utils/formatDate';
 import { 
   Briefcase, 
   User, 
-  DollarSign, 
   Calendar,
   CheckCircle2,
   Clock,
@@ -37,7 +36,6 @@ const contractStatusConfig = {
 
 export function ContractCard({ contract }) {
   const config = contractStatusConfig[contract.status] || contractStatusConfig.active;
-  const Icon = config.icon;
 
   // Calculate progress
   const completedMilestones = contract.milestones?.filter(
@@ -55,16 +53,18 @@ export function ContractCard({ contract }) {
   return (
     <Link
       to={`/contracts/${contract.id}`}
-      className="group rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary hover:shadow-md dark:border-gray-700 dark:bg-gray-900 dark:hover:border-accent"
+      className="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 p-4 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:hover:border-accent/60"
     >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-primary/8 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-accent/10" />
+
       {/* Header */}
-      <div className="mb-4 flex items-start justify-between">
-        <div className="flex items-start gap-3 flex-1">
-          <div className="rounded-lg bg-primary/10 p-2 dark:bg-accent/10">
+      <div className="relative z-10 mb-4 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <div className="rounded-xl bg-primary/10 p-2.5 ring-1 ring-primary/10 dark:bg-accent/10 dark:ring-accent/20">
             <Briefcase className="h-5 w-5 text-primary dark:text-accent" />
           </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-gray-900 group-hover:text-primary dark:text-white dark:group-hover:text-accent transition-colors line-clamp-1">
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate font-bold text-gray-900 transition-colors group-hover:text-primary dark:text-white dark:group-hover:text-accent">
               {contract.title}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -72,7 +72,7 @@ export function ContractCard({ contract }) {
             </p>
           </div>
         </div>
-        <div className={cn('border rounded-full px-3 py-1 text-xs font-semibold', config.badge)}>
+        <div className={cn('shrink-0 whitespace-nowrap border rounded-full px-3 py-1 text-xs font-semibold shadow-sm', config.badge)}>
           {config.label}
         </div>
       </div>
@@ -81,14 +81,14 @@ export function ContractCard({ contract }) {
       <div className="mb-3 flex items-center gap-3 text-sm">
         <div className="flex items-center gap-2 flex-1">
           <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-          <span className="text-gray-600 dark:text-gray-400">
+          <span className="truncate text-gray-600 dark:text-gray-400">
             {contract.isClientView ? contract.developer.name : contract.client.name}
           </span>
         </div>
       </div>
 
       {/* Progress */}
-      <div className="mb-4 space-y-2 border-t border-gray-200 pt-3 dark:border-gray-700">
+      <div className="mb-4 space-y-2 border-t border-gray-200/80 pt-3 dark:border-gray-700">
         <div className="flex items-center justify-between text-xs">
           <span className="text-gray-600 dark:text-gray-400">Progress</span>
           <span className="font-semibold text-gray-900 dark:text-white">
@@ -105,13 +105,13 @@ export function ContractCard({ contract }) {
 
       {/* Financial Summary */}
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="rounded bg-gray-50 p-2 dark:bg-gray-800">
+        <div className="rounded-lg bg-gray-50 p-2.5 ring-1 ring-gray-100 dark:bg-gray-800 dark:ring-gray-700/80">
           <p className="text-xs text-gray-600 dark:text-gray-400">Total</p>
           <p className="font-bold text-gray-900 dark:text-white">
             ₹{formatINR(totalValue / 100)}
           </p>
         </div>
-        <div className="rounded bg-green-50 p-2 dark:bg-green-900/10">
+        <div className="rounded-lg bg-emerald-50 p-2.5 ring-1 ring-emerald-100 dark:bg-emerald-900/10 dark:ring-emerald-900/40">
           <p className="text-xs text-green-700 dark:text-green-400">Funded</p>
           <p className="font-bold text-green-900 dark:text-green-300">
             ₹{formatINR(completedValue / 100)}
@@ -120,7 +120,7 @@ export function ContractCard({ contract }) {
       </div>
 
       {/* Dates */}
-      <div className="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
+      <div className="mt-3 border-t border-gray-200/80 pt-3 dark:border-gray-700">
         <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
           <Calendar className="h-3 w-3" />
           <span>Started {formatDate(new Date(contract.createdAt))}</span>
