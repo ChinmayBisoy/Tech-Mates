@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
-import { Camera, Loader, CheckCircle2 } from 'lucide-react'
+import { Camera, Loader, CheckCircle2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { userAPI } from '@/api/user.api'
 import { useAuth } from '@/hooks/useAuth'
@@ -12,29 +12,35 @@ import { useAuthStore } from '@/store/authStore'
 import { SKILLS } from '@/utils/constants'
 import { cn } from '@/utils/cn'
 
-const profileSetupSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(3, 'Username must be at least 3 characters')
-    .max(30, 'Username must be at most 30 characters')
-    .regex(/^[a-z0-9._]+$/, 'Use lowercase letters, numbers, dots, or underscores only'),
-  bio: z
-    .string()
-    .trim()
-    .min(20, 'Bio must be at least 20 characters')
-    .max(500, 'Bio must be at most 500 characters'),
-  skills: z.array(z.string()).min(1, 'Select at least one skill'),
-  linkedin: z.string().url('LinkedIn URL must be valid').optional().or(z.literal('')),
-  instagram: z.string().url('Instagram URL must be valid').optional().or(z.literal('')),
-})
+const createProfileSetupSchema = (isDeveloper) =>
+  z.object({
+    username: z
+      .string()
+      .trim()
+      .min(3, 'Username must be at least 3 characters')
+      .max(30, 'Username must be at most 30 characters')
+      .regex(/^[a-z0-9._]+$/, 'Use lowercase letters, numbers, dots, or underscores only'),
+    bio: z
+      .string()
+      .trim()
+      .min(20, 'Bio must be at least 20 characters')
+      .max(500, 'Bio must be at most 500 characters'),
+    skills: isDeveloper
+      ? z.array(z.string()).min(1, 'Select at least one skill')
+      : z.array(z.string()).optional().default([]),
+    linkedin: z.string().url('LinkedIn URL must be valid').optional().or(z.literal('')),
+    instagram: z.string().url('Instagram URL must be valid').optional().or(z.literal('')),
+  })
 
 export default function ProfileSetup() {
   const navigate = useNavigate()
-  const { user, isProfileComplete } = useAuth()
+  const { user, isProfileComplete, isDeveloper } = useAuth()
   const { updateUser } = useAuthStore()
   const [avatarFile, setAvatarFile] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '')
+  const [customSkillInput, setCustomSkillInput] = useState('')
+  const [customSkills, setCustomSkills] = useState([])
+  const [showCustomSkillInput, setShowCustomSkillInput] = useState(false)
 
   const defaults = useMemo(
     () => ({
@@ -53,19 +59,29 @@ export default function ProfileSetup() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(profileSetupSchema),
+    resolver: zodResolver(createProfileSetupSchema(isDeveloper)),
     values: defaults,
   })
 
   const completeMutation = useMutation({
     mutationFn: async (formValues) => {
-      const updatedProfile = await userAPI.updateProfile({
+      const profileData = {
         username: formValues.username,
         bio: formValues.bio,
-        skills: formValues.skills,
         linkedin: formValues.linkedin || undefined,
         instagram: formValues.instagram || undefined,
-      })
+      }
+
+      // Only include skills for developers, combining preset skills with custom skills
+      if (isDeveloper) {
+        const allSkills = [...(formValues.skills || []), ...customSkills]
+        if (allSkills.length === 0) {
+          throw new Error('Please select at least one skill')
+        }
+        profileData.skills = allSkills
+      }
+
+      const updatedProfile = await userAPI.updateProfile(profileData)
 
       let avatarUrl = user?.avatar || ''
       if (avatarFile) {
@@ -85,7 +101,7 @@ export default function ProfileSetup() {
       navigate('/dashboard', { replace: true })
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || 'Failed to complete profile setup')
+      toast.error(error?.response?.data?.message || error.message || 'Failed to complete profile setup')
     },
   })
 
@@ -105,6 +121,25 @@ export default function ProfileSetup() {
 
     setAvatarFile(file)
     setAvatarPreview(URL.createObjectURL(file))
+  }
+
+  const handleAddCustomSkill = () => {
+    if (!customSkillInput.trim()) {
+      toast.error('Please enter a skill name')
+      return
+    }
+    
+    if (customSkills.includes(customSkillInput.trim())) {
+      toast.error('This skill is already added')
+      return
+    }
+
+    setCustomSkills([...customSkills, customSkillInput.trim()])
+    setCustomSkillInput('')
+  }
+
+  const handleRemoveCustomSkill = (skill) => {
+    setCustomSkills(customSkills.filter((s) => s !== skill))
   }
 
   if (!user) {
@@ -163,41 +198,112 @@ export default function ProfileSetup() {
             {errors.bio && <p className="mt-1 text-sm text-red-600">{errors.bio.message}</p>}
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-900 dark:text-white">Skills</label>
-            <Controller
-              name="skills"
-              control={control}
-              render={({ field }) => (
-                <div>
-                  <div className="flex flex-wrap gap-2">
-                    {SKILLS.map((skill) => (
+          {isDeveloper && (
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-900 dark:text-white">Skills</label>
+              <Controller
+                name="skills"
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <div className="flex flex-wrap gap-2">
+                      {SKILLS.filter((skill) => skill !== 'Other').map((skill) => (
+                        <button
+                          key={skill}
+                          type="button"
+                          onClick={() => {
+                            const hasSkill = field.value?.includes(skill)
+                            const next = hasSkill
+                              ? field.value.filter((item) => item !== skill)
+                              : [...(field.value || []), skill]
+                            field.onChange(next)
+                          }}
+                          className={cn(
+                            'rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
+                            field.value?.includes(skill)
+                              ? 'bg-primary-600 text-white'
+                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                          )}
+                        >
+                          {skill}
+                        </button>
+                      ))}
+                      
+                      {/* Other Skills Button */}
                       <button
-                        key={skill}
                         type="button"
-                        onClick={() => {
-                          const hasSkill = field.value?.includes(skill)
-                          const next = hasSkill
-                            ? field.value.filter((item) => item !== skill)
-                            : [...(field.value || []), skill]
-                          field.onChange(next)
-                        }}
+                        onClick={() => setShowCustomSkillInput(!showCustomSkillInput)}
                         className={cn(
                           'rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
-                          field.value?.includes(skill)
+                          showCustomSkillInput || customSkills.length > 0
                             ? 'bg-primary-600 text-white'
                             : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                         )}
                       >
-                        {skill}
+                        + Add Custom Skill
                       </button>
-                    ))}
+                    </div>
+
+                    {/* Custom Skill Input */}
+                    {showCustomSkillInput && (
+                      <div className="mt-4 flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Enter a skill (e.g., Rust, Solidity, etc.)"
+                          value={customSkillInput}
+                          onChange={(e) => setCustomSkillInput(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleAddCustomSkill()
+                            }
+                          }}
+                          className="input flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddCustomSkill}
+                          className="rounded-lg bg-primary-600 text-white px-4 py-2 font-semibold hover:bg-primary-700 transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    )}
+
+                    {/* All Selected Skills Display */}
+                    {(field.value?.length > 0 || customSkills.length > 0) && (
+                      <div className="flex flex-wrap gap-2 p-3 mt-3 bg-gray-50 dark:bg-elevated rounded-lg">
+                        {field.value?.map((skill) => (
+                          <div
+                            key={skill}
+                            className="inline-flex items-center gap-1 bg-primary-100 dark:bg-primary-600/30 text-primary-700 dark:text-primary-100 px-3 py-1 rounded-full text-sm"
+                          >
+                            {skill}
+                          </div>
+                        ))}
+                        {customSkills.map((skill) => (
+                          <div
+                            key={skill}
+                            className="inline-flex items-center gap-1 bg-accent-100 dark:bg-accent-600/30 text-accent-700 dark:text-accent-100 px-3 py-1 rounded-full text-sm"
+                          >
+                            {skill}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomSkill(skill)}
+                              className="hover:text-accent-900 dark:hover:text-accent-100 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {errors.skills && <p className="mt-1 text-sm text-red-600">{errors.skills.message}</p>}
                   </div>
-                  {errors.skills && <p className="mt-1 text-sm text-red-600">{errors.skills.message}</p>}
-                </div>
-              )}
-            />
-          </div>
+                )}
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>

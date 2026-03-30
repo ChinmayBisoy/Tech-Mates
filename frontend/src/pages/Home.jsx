@@ -1,4 +1,7 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '@/hooks/useAuth'
+import { PageLoader } from '@/components/shared/PageLoader'
 import {
   ArrowRight,
   BadgeCheck,
@@ -12,9 +15,24 @@ import {
   Users,
   WalletCards,
   Zap,
+  TrendingUp,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  DollarSign,
+  Star,
+  Target,
+  Trophy,
+  ClipboardList,
 } from 'lucide-react'
+import { requirementAPI } from '@/api/requirement.api'
+import { getRequirementProposals } from '@/api/proposal.api'
+import { getMyContracts } from '@/api/contract.api'
+import { userAPI } from '@/api/user.api'
+import { reviewAPI } from '@/api/review.api'
 
-export function Home() {
+// ===== LANDING PAGE (Non-authenticated) =====
+function LandingPage() {
   const trustSignals = [
     {
       icon: ShieldCheck,
@@ -323,4 +341,703 @@ export function Home() {
       </section>
     </div>
   )
+}
+
+// ===== CLIENT DASHBOARD HOME (Authenticated) =====
+function ClientDashboardHome() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
+  // Fetch my requirements
+  const { data: requirementsData = {}, isLoading: reqLoading } = useQuery({
+    queryKey: ['myRequirements'],
+    queryFn: () => requirementAPI.getMyRequirements(1, 10),
+  })
+
+  // Fetch contracts
+  const { data: contractsData = {}, isLoading: contractLoading } = useQuery({
+    queryKey: ['myContracts'],
+    queryFn: () => getMyContracts(1, 10),
+  })
+
+  const requirements = Array.isArray(requirementsData) ? requirementsData : requirementsData.items || []
+  const contracts = Array.isArray(contractsData) ? contractsData : contractsData.items || []
+
+  // Fetch proposals for first 3 requirements
+  const { data: proposalsData = {}, isLoading: propLoading } = useQuery({
+    queryKey: ['receivedProposals', requirements.map(r => r._id)],
+    queryFn: async () => {
+      if (!requirements.length) return []
+      const proposals = await Promise.all(
+        requirements.slice(0, 3).map(req => getRequirementProposals(req._id, 1, 5))
+      )
+      return proposals.flat()
+    },
+    enabled: Boolean(requirements.length),
+  })
+
+  const proposals = Array.isArray(proposalsData) ? proposalsData : proposalsData.items || []
+
+  if (reqLoading || contractLoading) {
+    return <PageLoader />
+  }
+
+  const activeProposals = proposals.filter(p => p.status === 'pending').length
+  const activeContracts = contracts.filter(c => c.status === 'active').length
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-base dark:to-surface py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white">
+            Welcome back, {user?.name}! 👋
+          </h1>
+          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+            You have {activeProposals} new proposals and {activeContracts} active contracts
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-4 mb-8">
+          <div className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-white to-indigo-50 p-6 shadow-sm dark:border-gray-700 dark:bg-surface/80">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Projects</p>
+                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{requirements.length}</p>
+              </div>
+              <div className="rounded-lg bg-primary-100 p-3 dark:bg-slate-700/80">
+                <Briefcase className="h-6 w-6 text-primary-600 dark:text-cyan-300" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-accent-200 bg-gradient-to-br from-white to-accent-50 p-6 shadow-sm dark:border-gray-700 dark:bg-surface/80">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Spent</p>
+                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">₹{(requirements.reduce((sum, r) => sum + (r.budget || 0), 0) / 1000).toFixed(0)}k</p>
+              </div>
+              <div className="rounded-lg bg-accent-100 p-3 dark:bg-slate-700/80">
+                <WalletCards className="h-6 w-6 text-accent-600 dark:text-accent-300" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-success/30 bg-gradient-to-br from-white to-green-50 p-6 shadow-sm dark:border-gray-700 dark:bg-surface/80">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Proposals Got</p>
+                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{proposals.length}</p>
+              </div>
+              <div className="rounded-lg bg-success/15 p-3 dark:bg-slate-700/80">
+                <TrendingUp className="h-6 w-6 text-success dark:text-emerald-400" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-white to-amber-50 p-6 shadow-sm dark:border-gray-700 dark:bg-surface/80">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Milestones</p>
+                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{activeContracts}</p>
+              </div>
+              <div className="rounded-lg bg-amber-100 p-3 dark:bg-slate-700/80">
+                <Clock className="h-6 w-6 text-amber-600 dark:text-amber-300" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+            <button
+              onClick={() => navigate('/se-market/post-requirement')}
+              className="rounded-xl border-2 border-primary-600 bg-white px-6 py-3 font-semibold text-primary-600 transition-all hover:bg-primary-50 dark:border-accent-500 dark:bg-surface dark:text-accent dark:hover:bg-slate-700"
+            >
+              + Post Requirement
+            </button>
+            <button
+              onClick={() => navigate('/browse/developers')}
+              className="rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition-all hover:bg-gray-50 dark:border-gray-600 dark:bg-surface dark:text-gray-300 dark:hover:bg-slate-700"
+            >
+              Browse Developers
+            </button>
+            <button
+              onClick={() => navigate('/se-market/my-requirements')}
+              className="rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition-all hover:bg-gray-50 dark:border-gray-600 dark:bg-surface dark:text-gray-300 dark:hover:bg-slate-700"
+            >
+              My Requirements
+            </button>
+            <button
+              onClick={() => navigate('/dashboard/purchases')}
+              className="rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition-all hover:bg-gray-50 dark:border-gray-600 dark:bg-surface dark:text-gray-300 dark:hover:bg-slate-700"
+            >
+              My Purchases
+            </button>
+          </div>
+        </div>
+
+        {/* Your Active Requirements */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Your Active Requirements</h2>
+            <Link
+              to="/se-market/my-requirements"
+              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-accent dark:hover:text-accent/80 font-semibold"
+            >
+              View all →
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            {requirements.slice(0, 3).map((req) => (
+              <div
+                key={req._id}
+                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow dark:border-gray-700 dark:bg-surface/80"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{req.title}</h3>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{req.description?.substring(0, 100)}...</p>
+                    <div className="mt-3 flex items-center gap-4">
+                      <span className="inline-flex items-center gap-1 text-sm font-medium">
+                        <span className="text-gray-700 dark:text-gray-300">Budget:</span>
+                        <span className="text-primary-600 dark:text-accent">₹{(req.budget / 1000).toFixed(0)}k</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-sm font-medium">
+                        <span className="text-gray-700 dark:text-gray-300">Status:</span>
+                        <span className="text-success">{req.status}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{req.proposals?.length || 0}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Proposals</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!requirements.length && (
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center dark:border-gray-600 dark:bg-surface/50">
+                <p className="text-gray-600 dark:text-gray-400">No active requirements yet</p>
+                <button
+                  onClick={() => navigate('/se-market/post-requirement')}
+                  className="mt-4 inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-accent"
+                >
+                  Post your first requirement →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Proposals Received */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recent Proposals Received</h2>
+            <Link
+              to="/se-market/proposals-received"
+              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-accent dark:hover:text-accent/80 font-semibold"
+            >
+              View all →
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            {proposals.slice(0, 3).map((proposal) => (
+              <div
+                key={proposal._id}
+                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow dark:border-gray-700 dark:bg-surface/80"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{proposal.developerId?.name}</h3>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{proposal.coverLetter?.substring(0, 100)}...</p>
+                    <div className="mt-3 flex items-center gap-4">
+                      <span className="inline-flex items-center gap-1 text-sm font-medium">
+                        <span className="text-gray-700 dark:text-gray-300">Bid:</span>
+                        <span className="text-primary-600 dark:text-accent font-bold">₹{(proposal.proposedPrice / 1000).toFixed(0)}k</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-sm font-medium">
+                        <span className="text-gray-700 dark:text-gray-300">Delivery:</span>
+                        <span>{proposal.deliveryDays} days</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {proposal.status === 'pending' && (
+                      <button
+                        onClick={() => navigate(`/proposal/${proposal._id}`)}
+                        className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 transition-colors dark:bg-accent dark:hover:bg-accent/90"
+                      >
+                        Review
+                      </button>
+                    )}
+                    {proposal.status === 'accepted' && (
+                      <span className="inline-flex items-center gap-1 text-sm text-success font-medium">
+                        <CheckCircle2 className="h-4 w-4" /> Accepted
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!proposals.length && (
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center dark:border-gray-600 dark:bg-surface/50">
+                <p className="text-gray-600 dark:text-gray-400">No proposals yet. Post a requirement to get started!</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Active Contracts Status */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Active Contracts Status</h2>
+            <Link
+              to="/contracts"
+              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-accent dark:hover:text-accent/80 font-semibold"
+            >
+              View all →
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            {contracts.slice(0, 3).map((contract) => (
+              <div
+                key={contract._id}
+                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow dark:border-gray-700 dark:bg-surface/80"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{contract.requirementId?.title}</h3>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">with {contract.developerId?.name}</p>
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">
+                          {Math.round((contract.milestones?.filter(m => m.status === 'approved').length || 0) / (contract.milestones?.length || 1) * 100)}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                        <div
+                          className="h-full bg-primary-600 dark:bg-accent transition-all"
+                          style={{
+                            width: `${Math.round((contract.milestones?.filter(m => m.status === 'approved').length || 0) / (contract.milestones?.length || 1) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium"
+                      style={{
+                        backgroundColor: contract.status === 'active' ? '#dcfce7' : '#fef3c7',
+                        color: contract.status === 'active' ? '#15803d' : '#92400e',
+                      }}
+                    >
+                      {contract.status === 'active' ? (
+                        <>
+                          <div className="h-2 w-2 rounded-full bg-current" />
+                          Active
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="h-4 w-4" />
+                          {contract.status}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!contracts.length && (
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center dark:border-gray-600 dark:bg-surface/50">
+                <p className="text-gray-600 dark:text-gray-400">No active contracts yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ===== DEVELOPER DASHBOARD HOME =====
+function DeveloperDashboardHome() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
+  // Fetch dashboard stats
+  const { data: dashboardData } = useQuery({
+    queryKey: ['developer-dashboard'],
+    queryFn: userAPI.getDashboard,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  // Fetch active contracts
+  const { data: contractsData = { data: [] } } = useQuery({
+    queryKey: ['my-contracts', 1],
+    queryFn: () => getMyContracts(1, 4),
+    staleTime: 60 * 1000,
+  })
+  const contracts = contractsData.data || []
+
+  // Fetch matching opportunities (open requirements)
+  const { data: opportunitiesData = { data: [] } } = useQuery({
+    queryKey: ['open-requirements', 1],
+    queryFn: () => requirementAPI.fetchRequirements({ status: 'open' }, 1, 6),
+    staleTime: 60 * 1000,
+  })
+  const opportunities = opportunitiesData.data || []
+
+  // Fetch recent reviews/feedback
+  const { data: reviewsData = { data: [] } } = useQuery({
+    queryKey: ['my-reviews', user?._id, 1],
+    queryFn: () => reviewAPI.getUserReviews(user?._id, 1, 3),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!user?._id,
+  })
+  const reviews = reviewsData.data || []
+
+  const stats = [
+    {
+      label: 'Available Earnings',
+      value: (dashboardData?.availableEarnings || 0).toLocaleString('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0,
+      }),
+      icon: DollarSign,
+      gradient: 'from-emerald-500 to-teal-600',
+      bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20',
+    },
+    {
+      label: 'Pending Earnings',
+      value: (dashboardData?.pendingEarnings || 0).toLocaleString('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0,
+      }),
+      icon: Clock,
+      gradient: 'from-amber-500 to-orange-600',
+      bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20',
+    },
+    {
+      label: 'This Month',
+      value: (dashboardData?.thisMonthEarnings || 0).toLocaleString('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0,
+      }),
+      icon: TrendingUp,
+      gradient: 'from-blue-500 to-cyan-600',
+      bgGradient: 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20',
+    },
+    {
+      label: 'Rating',
+      value: user?.avgRating ? user.avgRating.toFixed(1) : '0',
+      icon: Star,
+      gradient: 'from-violet-500 to-purple-600',
+      bgGradient: 'from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20',
+      suffix: user?.avgRating ? `(${(dashboardData?.totalReviews || 0)} reviews)` : 'No reviews yet',
+    },
+  ]
+
+  const quickActions = [
+    {
+      label: 'Browse Requirements',
+      icon: Target,
+      onClick: () => navigate('/se-market'),
+    },
+    {
+      label: 'Submit Proposal',
+      icon: Briefcase,
+      onClick: () => navigate('/se-market?action=explore'),
+    },
+    {
+      label: 'View My Proposals',
+      icon: ClipboardList,
+      onClick: () => navigate('/dashboard/proposals'),
+    },
+    {
+      label: 'Request Payout',
+      icon: Rocket,
+      onClick: () => navigate('/dashboard/wallet'),
+    },
+  ]
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Welcome back, {user?.name}! 👋
+          </h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Here's your development dashboard at a glance
+          </p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {stats.map((stat, idx) => {
+            const Icon = stat.icon
+            return (
+              <div
+                key={idx}
+                className={`bg-gradient-to-br ${stat.bgGradient} rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-shadow`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`bg-gradient-to-br ${stat.gradient} p-3 rounded-lg`}>
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    {stat.label}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                  {stat.suffix && (
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{stat.suffix}</p>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {quickActions.map((action, idx) => {
+              const Icon = action.icon
+              return (
+                <button
+                  key={idx}
+                  onClick={action.onClick}
+                  className="flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-surface border border-gray-300 dark:border-gray-600 px-6 py-3 font-semibold text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm hover:shadow-md"
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{action.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Active Contracts */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Active Contracts</h2>
+            <Link
+              to="/dashboard/contracts"
+              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-accent dark:hover:text-accent/80 font-semibold"
+            >
+              View all →
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            {contracts.map((contract) => (
+              <div
+                key={contract._id}
+                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow dark:border-gray-700 dark:bg-surface/80"
+              >
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {contract.requirementTitle}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Client: {contract.clientName}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-primary-600 dark:text-accent">
+                      ₹{(contract.totalAmount / 1000).toFixed(0)}k
+                    </p>
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                      {contract.status}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Milestones Progress */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {contract.completedMilestones}/{contract.totalMilestones} milestones
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-primary-500 to-accent rounded-full h-2 transition-all"
+                      style={{
+                        width: `${Math.round((contract.completedMilestones / contract.totalMilestones) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {!contracts.length && (
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center dark:border-gray-600 dark:bg-surface/50">
+                <Briefcase className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-600 dark:text-gray-400 mb-3">No active contracts yet</p>
+                <button
+                  onClick={() => navigate('/se-market')}
+                  className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-accent dark:hover:text-accent/80 font-semibold"
+                >
+                  Browse opportunities →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Matching Opportunities */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Matching Opportunities</h2>
+            <Link
+              to="/se-market"
+              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-accent dark:hover:text-accent/80 font-semibold"
+            >
+              View all →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {opportunities.slice(0, 3).map((opportunity) => (
+              <div
+                key={opportunity._id}
+                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow dark:border-gray-700 dark:bg-surface/80 cursor-pointer hover:border-primary-300 dark:hover:border-accent/50"
+                onClick={() => navigate(`/se-market/requirement/${opportunity._id}`)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-lg flex-1">
+                    {opportunity.title}
+                  </h3>
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-full whitespace-nowrap">
+                    <Target className="w-3 h-3" />
+                    {opportunity.difficulty}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                  {opportunity.description}
+                </p>
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Budget</p>
+                    <p className="text-lg font-bold text-primary-600 dark:text-accent">
+                      ₹{(opportunity.budget / 1000).toFixed(0)}k
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Proposals</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                      {opportunity.proposalCount || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {!opportunities.length && (
+              <div className="col-span-full rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center dark:border-gray-600 dark:bg-surface/50">
+                <Target className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-600 dark:text-gray-400 mb-3">No matching opportunities right now</p>
+                <button
+                  onClick={() => navigate('/se-market')}
+                  className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-accent dark:hover:text-accent/80 font-semibold"
+                >
+                  Browse all requirements →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Feedback */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recent Feedback</h2>
+            <Link
+              to="/dashboard/reviews"
+              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-accent dark:hover:text-accent/80 font-semibold"
+            >
+              View all →
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <div
+                key={review._id}
+                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow dark:border-gray-700 dark:bg-surface/80"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-white">{review.reviewerName}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      on {new Date(review.createdAt).toLocaleDateString('en-IN')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < review.rating
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-gray-300 dark:text-gray-600'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-700 dark:text-gray-300">{review.comment}</p>
+              </div>
+            ))}
+
+            {!reviews.length && (
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center dark:border-gray-600 dark:bg-surface/50">
+                <Trophy className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-600 dark:text-gray-400">No reviews yet. Complete your first contract to get feedback!</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ===== MAIN HOME COMPONENT =====
+export function Home() {
+  const { isAuthenticated, user, hasHydrated } = useAuth()
+
+  if (!hasHydrated) {
+    return <PageLoader />
+  }
+
+  // Show personalized dashboard for authenticated clients
+  if (isAuthenticated && user?.role === 'client') {
+    return <ClientDashboardHome />
+  }
+
+  // Show personalized dashboard for authenticated developers
+  if (isAuthenticated && user?.role === 'developer') {
+    return <DeveloperDashboardHome />
+  }
+
+  // Show landing page for non-authenticated or non-client/developer users
+  return <LandingPage />
 }

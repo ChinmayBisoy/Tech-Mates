@@ -1,13 +1,11 @@
 import { useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Loader, X } from 'lucide-react'
+import { Eye, EyeOff, Loader } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authAPI } from '@/api/auth.api'
 import { useAuthStore } from '@/store/authStore'
-import { SKILLS } from '@/utils/constants'
-import { cn } from '@/utils/cn'
 
 const registerSchema = z
   .object({
@@ -23,7 +21,6 @@ const registerSchema = z
       .regex(/[0-9]/, 'Password must contain at least one number')
       .regex(/[@$!%*?&]/, 'Password must contain at least one special character (@$!%*?&)'),
     confirmPassword: z.string(),
-    skills: z.array(z.string()).optional().default([]),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -38,27 +35,12 @@ export function RegisterForm({ role, onSuccess }) {
 
   const {
     register,
-    control,
     handleSubmit,
     formState: { errors },
     reset,
-    watch,
   } = useForm({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      skills: [],
-    },
   })
-
-  const selectedSkills = watch('skills') || []
-
-  const toggleSkill = (skill, currentSkills = []) => {
-    if (currentSkills.includes(skill)) {
-      return currentSkills.filter((s) => s !== skill)
-    } else {
-      return [...currentSkills, skill]
-    }
-  }
 
   const onSubmit = async (data) => {
     setIsSubmitting(true)
@@ -72,7 +54,6 @@ export function RegisterForm({ role, onSuccess }) {
         password: data.password,
         confirmPassword: data.confirmPassword,
         role: backendRole,
-        ...(backendRole === 'developer' && { skills: data.skills }),
       }
 
       const response = await authAPI.register(registerData)
@@ -202,67 +183,6 @@ export function RegisterForm({ role, onSuccess }) {
           </p>
         )}
       </div>
-
-      {/* Skills Selector (Developer only) */}
-      {role === 'developer' && (
-        <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
-            Skills (optional)
-          </label>
-          <Controller
-            name="skills"
-            control={control}
-            render={({ field }) => (
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {SKILLS.map((skill) => (
-                    <button
-                      key={skill}
-                      type="button"
-                      onClick={() => {
-                        const updated = toggleSkill(skill, field.value)
-                        field.onChange(updated)
-                      }}
-                      className={cn(
-                        'px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200',
-                        field.value.includes(skill)
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                      )}
-                    >
-                      {skill}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Selected Skills Display */}
-                {field.value.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-elevated rounded-lg">
-                    {field.value.map((skill) => (
-                      <div
-                        key={skill}
-                        className="inline-flex items-center gap-1 bg-primary-100 dark:bg-primary-600/30 text-primary-700 dark:text-primary-100 px-3 py-1 rounded-full text-sm"
-                      >
-                        {skill}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = field.value.filter((s) => s !== skill)
-                            field.onChange(updated)
-                          }}
-                          className="hover:text-primary-900 dark:hover:text-primary-100 transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          />
-        </div>
-      )}
 
       {/* Submit Button */}
       <button
