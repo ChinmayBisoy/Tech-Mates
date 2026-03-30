@@ -63,7 +63,7 @@ export function PublicProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-indigo-50 to-slate-100 py-8 md:py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-indigo-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 md:py-12 px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <ProfileHeader
           user={user}
@@ -83,8 +83,8 @@ export function PublicProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
             {user.skills && user.skills.length > 0 && (
-              <div className="rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur p-6 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.4)]">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">
+              <div className="rounded-2xl border border-slate-200/80 dark:border-gray-700 bg-white/80 dark:bg-surface/80 backdrop-blur p-6 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.4)] dark:shadow-none">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                   Skills
                 </h3>
                 <SkillTags skills={user.skills} />
@@ -92,8 +92,8 @@ export function PublicProfile() {
             )}
 
             {profileLinks.length > 0 || user.website || githubUrl || user.linkedin || user.instagram ? (
-              <div className="rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur p-6 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.4)]">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">
+              <div className="rounded-2xl border border-slate-200/80 dark:border-gray-700 bg-white/80 dark:bg-surface/80 backdrop-blur p-6 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.4)] dark:shadow-none">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                   Links
                 </h3>
                 <div className="space-y-3">
@@ -103,13 +103,13 @@ export function PublicProfile() {
                       href={link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 dark:text-gray-300 ring-1 ring-slate-200 dark:ring-gray-700 hover:bg-slate-100/80 dark:hover:bg-slate-700/40 transition-colors"
                     >
                       <span className="inline-flex items-center gap-2 truncate">
-                        <Globe className="w-4 h-4 text-slate-500" />
+                        <Globe className="w-4 h-4 text-slate-500 dark:text-gray-400" />
                         Portfolio {index + 1}
                       </span>
-                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                      <ExternalLink className="w-4 h-4 text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300" />
                     </a>
                   ))}
                   {user.website && (
@@ -117,13 +117,13 @@ export function PublicProfile() {
                       href={user.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 dark:text-gray-300 ring-1 ring-slate-200 dark:ring-gray-700 hover:bg-slate-100/80 dark:hover:bg-slate-700/40 transition-colors"
                     >
                       <span className="inline-flex items-center gap-2 truncate">
-                        <Globe className="w-4 h-4 text-slate-500" />
+                        <Globe className="w-4 h-4 text-slate-500 dark:text-gray-400" />
                         Website
                       </span>
-                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                      <ExternalLink className="w-4 h-4 text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300" />
                     </a>
                   )}
                   {githubUrl && (
@@ -131,13 +131,13 @@ export function PublicProfile() {
                       href={githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 dark:text-gray-300 ring-1 ring-slate-200 dark:ring-gray-700 hover:bg-slate-100/80 dark:hover:bg-slate-700/40 transition-colors"
                     >
                       <span className="inline-flex items-center gap-2 truncate">
-                        <Github className="w-4 h-4 text-slate-500" />
+                        <Github className="w-4 h-4 text-slate-500 dark:text-gray-400" />
                         GitHub
                       </span>
-                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                      <ExternalLink className="w-4 h-4 text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300" />
                     </a>
                   )}
                   {user.linkedin && (
@@ -145,13 +145,13 @@ export function PublicProfile() {
                       href={user.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 dark:text-gray-300 ring-1 ring-slate-200 dark:ring-gray-700 hover:bg-slate-100/80 dark:hover:bg-slate-700/40 transition-colors"
                     >
                       <span className="inline-flex items-center gap-2 truncate">
-                        <Linkedin className="w-4 h-4 text-slate-500" />
+                        <Linkedin className="w-4 h-4 text-slate-500 dark:text-gray-400" />
                         LinkedIn
                       </span>
-                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                      <ExternalLink className="w-4 h-4 text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300" />
                     </a>
                   )}
                   {user.instagram && (
@@ -159,13 +159,13 @@ export function PublicProfile() {
                       href={user.instagram}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100/80 transition-colors"
+                      className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 dark:text-gray-300 ring-1 ring-slate-200 dark:ring-gray-700 hover:bg-slate-100/80 dark:hover:bg-slate-700/40 transition-colors"
                     >
                       <span className="inline-flex items-center gap-2 truncate">
-                        <Instagram className="w-4 h-4 text-slate-500" />
+                        <Instagram className="w-4 h-4 text-slate-500 dark:text-gray-400" />
                         Instagram
                       </span>
-                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                      <ExternalLink className="w-4 h-4 text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300" />
                     </a>
                   )}
                 </div>
@@ -175,12 +175,12 @@ export function PublicProfile() {
 
           <div className="lg:col-span-2">
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
                 Reviews
               </h2>
               {reviewsLoading ? (
-                <div className="rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur p-12 text-center">
-                  <p className="text-slate-600">
+                <div className="rounded-2xl border border-slate-200/80 dark:border-gray-700 bg-white/80 dark:bg-surface/80 backdrop-blur p-12 text-center">
+                  <p className="text-slate-600 dark:text-gray-400">
                     Loading reviews...
                   </p>
                 </div>
