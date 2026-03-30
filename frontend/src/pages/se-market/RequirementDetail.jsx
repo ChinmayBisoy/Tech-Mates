@@ -108,11 +108,11 @@ export default function RequirementDetail() {
             {/* Header */}
             <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{requirement.title}</h1>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-3xl font-bold text-gray-900 break-words [overflow-wrap:anywhere] dark:text-white">{requirement.title}</h1>
                   <p className="mt-2 text-gray-600 dark:text-gray-400">Posted {formatDate(new Date(requirement.createdAt))}</p>
                 </div>
-                <div className={`rounded-lg px-4 py-2 text-sm font-semibold ${
+                <div className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold ${
                   requirement.status === 'open'
                     ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
                     : 'bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
@@ -140,7 +140,7 @@ export default function RequirementDetail() {
             {/* Description */}
             <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
               <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">About this requirement</h2>
-              <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">{requirement.description}</p>
+              <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-gray-700 dark:text-gray-300">{requirement.description}</p>
 
               {/* Skills */}
               <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
@@ -152,7 +152,7 @@ export default function RequirementDetail() {
               {requirement.location && (
                 <div className="mt-4 flex items-center gap-2 text-gray-600 dark:text-gray-300">
                   <MapPin className="h-5 w-5" />
-                  <span>{requirement.location}</span>
+                  <span className="break-words [overflow-wrap:anywhere]">{requirement.location}</span>
                 </div>
               )}
             </div>
@@ -217,7 +217,7 @@ export default function RequirementDetail() {
                     Budget
                   </div>
                   <p className="mt-1 text-lg font-bold text-primary dark:text-accent">
-                    ₹{formatINR(budget.min / 100)} - ₹{formatINR(budget.max / 100)}
+                    {formatINR(budget.min)} - {formatINR(budget.max)}
                   </p>
                 </div>
 

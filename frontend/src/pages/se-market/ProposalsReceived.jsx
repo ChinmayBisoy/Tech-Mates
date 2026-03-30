@@ -171,23 +171,30 @@ export default function ProposalsReceived() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 dark:bg-gray-950">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <div className="mb-4 flex items-center gap-3">
-              <MessageSquare className="h-8 w-8 text-primary dark:text-accent" />
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Proposals Received</h1>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-sky-50 via-indigo-50 to-slate-100 py-10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
+      <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl dark:bg-sky-500/10" />
+      <div className="pointer-events-none absolute right-0 top-24 h-80 w-80 rounded-full bg-indigo-300/25 blur-3xl dark:bg-indigo-500/10" />
+
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 rounded-3xl border border-white/70 bg-white/85 p-6 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.45)] backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="mb-3 flex items-center gap-3">
+                <div className="rounded-2xl bg-primary/10 p-2.5 ring-1 ring-primary/20 dark:bg-accent/10 dark:ring-accent/20">
+                  <MessageSquare className="h-8 w-8 text-black dark:text-accent stroke-[2.5]" />
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Proposals Received</h1>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Review proposals submitted by developers for your requirements.</p>
             </div>
-            <p className="text-gray-600 dark:text-gray-400">Review proposals submitted by developers for your requirements.</p>
-          </div>
-          <div className="rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary dark:bg-accent/10 dark:text-accent">
-            {proposals.length} total
+            <div className="inline-flex w-fit items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm dark:bg-accent/20 dark:text-accent">
+              {proposals.length} total
+            </div>
           </div>
         </div>
 
         {proposals.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-900">
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/80 p-8 dark:border-gray-700 dark:bg-gray-900/70">
             <EmptyState
               icon={Inbox}
               title="No proposals received yet"
@@ -195,20 +202,21 @@ export default function ProposalsReceived() {
             />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {proposals.map((proposal) => (
-              <ProposalCard
-                key={proposal.id}
-                proposal={proposal}
-                isDeveloper={false}
-                onAction={(action, proposalId) => {
-                  if (action === 'message') {
-                    toast('Messaging will be available soon.');
-                    return;
-                  }
-                  actionMutation.mutate({ action, proposalId });
-                }}
-              />
+              <div key={proposal.id} className="rounded-2xl border border-slate-200/80 bg-white/80 p-3 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.6)] backdrop-blur dark:border-gray-700 dark:bg-gray-900/75">
+                <ProposalCard
+                  proposal={proposal}
+                  isDeveloper={false}
+                  onAction={(action, proposalId) => {
+                    if (action === 'message') {
+                      toast('Messaging will be available soon.');
+                      return;
+                    }
+                    actionMutation.mutate({ action, proposalId });
+                  }}
+                />
+              </div>
             ))}
           </div>
         )}

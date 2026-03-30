@@ -15,7 +15,9 @@ export function PublicProfile() {
   const profileId = userId || id
   const navigate = useNavigate()
   const { user: currentUser } = useAuth()
-  const isOwnProfile = currentUser?._id === profileId
+  const currentUserId = String(currentUser?._id || currentUser?.id || '')
+  const viewedProfileId = String(profileId || '')
+  const isOwnProfile = Boolean(currentUserId && viewedProfileId && currentUserId === viewedProfileId)
 
   const {
     data: userResponse,

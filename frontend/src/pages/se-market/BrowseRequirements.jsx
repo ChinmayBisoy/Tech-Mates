@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as requirementAPI from '@/api/requirement.api';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -14,38 +15,46 @@ const truncateText = (value, maxLength = 140) => {
 };
 
 export default function BrowseRequirements() {
+  const [hiddenRequirementIds, setHiddenRequirementIds] = useState([]);
+
   const { data: openRequirementsResponse, isLoading, error, refetch } = useQuery({
     queryKey: ['requirements', 'open', 'opportunities-page'],
     queryFn: () => requirementAPI.fetchOpenRequirements(50),
   });
 
-  const requirements = Array.isArray(openRequirementsResponse?.data)
+  const allRequirements = Array.isArray(openRequirementsResponse?.data)
     ? openRequirementsResponse.data
     : Array.isArray(openRequirementsResponse)
       ? openRequirementsResponse
       : [];
 
+  const requirements = allRequirements.filter((requirement) => {
+    const requirementId = String(requirement?._id || requirement?.id || '');
+    return requirementId && !hiddenRequirementIds.includes(requirementId);
+  });
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 dark:bg-gray-950">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex flex-col gap-4 text-center lg:text-left">
-          <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-primary-700 dark:text-primary-300 lg:justify-start">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-sky-50 via-indigo-50 to-slate-100 py-10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
+      <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl dark:bg-sky-500/10" />
+      <div className="pointer-events-none absolute right-0 top-24 h-80 w-80 rounded-full bg-indigo-300/25 blur-3xl dark:bg-indigo-500/10" />
+
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 rounded-3xl border border-white/70 bg-white/85 p-6 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.45)] backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
+          <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 dark:text-slate-300">
             <Clock3 className="h-4 w-4" />
             Live Opportunities
           </p>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Open Opportunities</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">Fresh requirements from teams looking for developers right now.</p>
-          </div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Open Opportunities</h1>
+          <p className="mt-2 text-base text-slate-600 dark:text-slate-300">Fresh requirements from teams looking for developers right now.</p>
         </div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-base">
-                <div className="mb-4 h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-                <div className="mb-4 h-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-                <div className="h-3 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              <div key={i} className="rounded-2xl border border-slate-200/90 bg-white/85 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900/80">
+                <div className="mb-4 h-6 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="mb-4 h-14 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
               </div>
             ))}
           </div>
@@ -56,11 +65,13 @@ export default function BrowseRequirements() {
             onRetry={() => refetch()}
           />
         ) : requirements.length === 0 ? (
-          <EmptyState
-            icon={Briefcase}
-            title="No open requirements at the moment"
-            description="Check back soon for new opportunities."
-          />
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/80 p-8 dark:border-gray-700 dark:bg-gray-900/70">
+            <EmptyState
+              icon={Briefcase}
+              title="No open requirements at the moment"
+              description="Check back soon for new opportunities."
+            />
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {requirements.map((requirement) => {
@@ -70,43 +81,56 @@ export default function BrowseRequirements() {
               const skills = requirement?.skills || requirement?.skillsRequired || [];
 
               return (
-                <Link
-                  key={requirementId}
-                  to={`/se-market/requirement/${requirementId}`}
-                  className="group rounded-2xl border border-indigo-200 bg-gradient-to-b from-indigo-50 to-indigo-100/70 p-6 shadow-sm shadow-indigo-100/70 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-100/80 dark:border-gray-800 dark:bg-none dark:bg-base dark:hover:shadow-primary-900/30"
-                >
-                  <div className="mb-4 flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="line-clamp-2 text-lg font-semibold text-gray-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-accent">
-                        {requirement.title}
-                      </h3>
-                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 break-all overflow-hidden">
-                        {truncateText(requirement.description, 130)}
+                <div key={requirementId} className="rounded-2xl border border-slate-200/80 bg-white/80 p-3 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.6)] backdrop-blur dark:border-gray-700 dark:bg-gray-900/75">
+                  <div className="group rounded-xl border border-slate-200/90 bg-white/90 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_18px_35px_-25px_rgba(59,130,246,0.45)] dark:border-gray-700 dark:bg-gray-900/95">
+                    <div className="mb-4 flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <h3 className="line-clamp-2 text-xl font-semibold tracking-tight text-slate-900 transition-colors group-hover:text-primary dark:text-white dark:group-hover:text-accent">
+                          {requirement.title}
+                        </h3>
+                        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-600 dark:text-gray-300">
+                          {truncateText(requirement.description, 130)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-primary/10 p-2.5 ring-1 ring-primary/20 dark:bg-accent/10 dark:ring-accent/20">
+                        <Briefcase className="h-4 w-4 text-black dark:text-accent stroke-[2]" />
+                      </div>
+                    </div>
+
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      {skills.slice(0, 4).map((skill) => (
+                        <span
+                          key={skill}
+                          className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 dark:bg-gray-800 dark:text-gray-300"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-gray-700">
+                      <p className="text-xl font-extrabold text-slate-900 dark:text-accent">
+                        {formatINR(minBudget)} - {formatINR(maxBudget)}
                       </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-slate-600 dark:text-gray-400">{formatDeadline(requirement.deadline)}</p>
+                        <Link
+                          to={`/se-market/requirement/${requirementId}`}
+                          className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-700"
+                        >
+                          View
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setHiddenRequirementIds((prev) => [...prev, String(requirementId)])}
+                          className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700"
+                        >
+                          Leave
+                        </button>
+                      </div>
                     </div>
-                    <div className="rounded-lg bg-primary-100 p-2 dark:bg-primary-900/30">
-                      <Briefcase className="h-4 w-4 text-primary-700 dark:text-primary-200" />
-                    </div>
                   </div>
-
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {skills.slice(0, 4).map((skill) => (
-                      <span
-                        key={skill}
-                        className="rounded-full bg-primary-100 px-2.5 py-1 text-xs font-medium text-primary-700 dark:bg-primary-800/40 dark:text-primary-200"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
-                    <p className="font-bold text-primary-700 dark:text-accent">
-                      {formatINR(minBudget)} - {formatINR(maxBudget)}
-                    </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">{formatDeadline(requirement.deadline)}</p>
-                  </div>
-                </Link>
+                </div>
               );
             })}
           </div>

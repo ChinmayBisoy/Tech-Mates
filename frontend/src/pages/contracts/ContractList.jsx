@@ -60,26 +60,26 @@ export default function ContractList() {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-50 py-10 dark:bg-gray-950">
-      <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
-      <div className="pointer-events-none absolute -right-24 top-24 h-80 w-80 rounded-full bg-primary/20 blur-3xl dark:bg-accent/10" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-sky-50 via-indigo-50 to-slate-100 py-10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
+      <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl dark:bg-sky-500/10" />
+      <div className="pointer-events-none absolute right-0 top-24 h-80 w-80 rounded-full bg-indigo-300/25 blur-3xl dark:bg-indigo-500/10" />
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8 rounded-2xl border border-white/70 bg-white/85 p-6 shadow-md backdrop-blur dark:border-gray-800 dark:bg-gray-900/85">
+        <div className="mb-8 rounded-3xl border border-white/70 bg-white/85 p-6 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.45)] backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
           <div className="mb-3 flex items-center gap-3">
-            <div className="rounded-xl bg-primary/10 p-2.5 ring-1 ring-primary/20 dark:bg-accent/10 dark:ring-accent/20">
-              <Briefcase className="h-7 w-7 text-primary dark:text-accent" />
+            <div className="rounded-2xl bg-primary/10 p-2.5 ring-1 ring-primary/20 dark:bg-accent/10 dark:ring-accent/20">
+              <Briefcase className="h-8 w-8 text-black dark:text-accent stroke-[2.5]" />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">My Contracts</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">My Contracts</h1>
           </div>
-          <p className="max-w-2xl text-gray-600 dark:text-gray-400">
+          <p className="max-w-2xl text-base text-slate-600 dark:text-slate-300">
             Manage your active contracts and track milestones
           </p>
         </div>
 
         {/* Statistics */}
-        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
           {[
             { label: 'Total', count: contracts.length, status: null },
             { label: 'Active', count: statusCounts.active, status: 'active' },
@@ -90,24 +90,24 @@ export default function ContractList() {
             <button
               key={stat.label}
               onClick={() => setStatusFilter(stat.status)}
-              className={`rounded-xl border p-4 text-left shadow-sm transition-all duration-200 ${
+              className={`rounded-2xl px-5 py-6 text-left transition-all ${
                 statusFilter === stat.status
-                  ? 'border-primary bg-primary/10 ring-2 ring-primary/20 dark:border-accent dark:bg-accent/10 dark:ring-accent/20'
-                  : 'border-white/70 bg-white/85 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-900/85 dark:hover:border-gray-600'
+                  ? 'border border-primary/30 bg-gradient-to-br from-primary/10 via-white to-primary/5 shadow-md shadow-primary/20 dark:border-accent/40 dark:from-accent/20 dark:via-gray-900 dark:to-accent/10'
+                  : 'border border-slate-200/90 bg-white/85 shadow-sm hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700 dark:bg-gray-900/80'
               }`}
             >
-              <p className="text-2xl font-extrabold text-gray-900 dark:text-white">{stat.count}</p>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.label}</p>
+              <p className="text-4xl font-black leading-none text-slate-900 dark:text-white">{stat.count}</p>
+              <p className="mt-2 text-sm font-semibold text-slate-600 dark:text-slate-300">{stat.label}</p>
             </button>
           ))}
         </div>
 
         {/* Filter Section */}
-        <div className="mb-6 rounded-xl border border-white/70 bg-white/80 p-3 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
+        <div className="mb-6 rounded-2xl border border-slate-200/80 bg-white/80 p-3 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-900/70">
           <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={() => setExpandedStatus(!expandedStatus)}
-            className="flex items-center gap-2 rounded-lg border border-gray-300/80 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             <Filter className="h-4 w-4" />
             Status
@@ -117,7 +117,7 @@ export default function ContractList() {
           {statusFilter && (
             <button
               onClick={() => setStatusFilter(null)}
-              className="rounded-md px-2 py-1 text-sm text-primary transition-colors hover:bg-primary/10 dark:text-accent dark:hover:bg-accent/10"
+              className="rounded-md px-2 py-1 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 dark:text-accent dark:hover:bg-accent/10"
             >
               Clear filter
             </button>
@@ -125,7 +125,7 @@ export default function ContractList() {
           </div>
 
           {expandedStatus && (
-            <div className="mt-3 flex flex-wrap gap-2 border-t border-gray-200/80 pt-3 dark:border-gray-700">
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-200/80 pt-3 dark:border-gray-700">
               {statusOptions.map((option) => (
                 <button
                   key={option.label}
@@ -160,19 +160,23 @@ export default function ContractList() {
             onRetry={() => contractsQuery.refetch()}
           />
         ) : contracts.length === 0 ? (
-          <EmptyState
-            icon={Briefcase}
-            title="No contracts yet"
-            description={
-              statusFilter
-                ? 'You have no contracts with this status'
-                : 'Start by accepting proposals to create contracts!'
-            }
-          />
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/80 p-8 dark:border-gray-700 dark:bg-gray-900/70">
+            <EmptyState
+              icon={Briefcase}
+              title="No contracts yet"
+              description={
+                statusFilter
+                  ? 'You have no contracts with this status'
+                  : 'Start by accepting proposals to create contracts!'
+              }
+            />
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {contracts.map((contract) => (
-              <ContractCard key={contract.id} contract={contract} />
+              <div key={contract.id} className="rounded-2xl border border-slate-200/80 bg-white/80 p-3 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.6)] backdrop-blur dark:border-gray-700 dark:bg-gray-900/75">
+                <ContractCard contract={contract} />
+              </div>
             ))}
           </div>
         )}

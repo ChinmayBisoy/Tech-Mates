@@ -61,7 +61,7 @@ export function ContractCard({ contract }) {
       <div className="relative z-10 mb-4 flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-start gap-3">
           <div className="rounded-xl bg-primary/10 p-2.5 ring-1 ring-primary/10 dark:bg-accent/10 dark:ring-accent/20">
-            <Briefcase className="h-5 w-5 text-primary dark:text-accent" />
+            <Briefcase className="h-6 w-6 text-black dark:text-accent stroke-[2.5]" />
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="truncate font-bold text-gray-900 transition-colors group-hover:text-primary dark:text-white dark:group-hover:text-accent">
@@ -80,7 +80,7 @@ export function ContractCard({ contract }) {
       {/* Participants */}
       <div className="mb-3 flex items-center gap-3 text-sm">
         <div className="flex items-center gap-2 flex-1">
-          <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+          <User className="h-4 w-4 text-black dark:text-accent stroke-[2]" />
           <span className="truncate text-gray-600 dark:text-gray-400">
             {contract.isClientView ? contract.developer.name : contract.client.name}
           </span>
@@ -108,13 +108,13 @@ export function ContractCard({ contract }) {
         <div className="rounded-lg bg-gray-50 p-2.5 ring-1 ring-gray-100 dark:bg-gray-800 dark:ring-gray-700/80">
           <p className="text-xs text-gray-600 dark:text-gray-400">Total</p>
           <p className="font-bold text-gray-900 dark:text-white">
-            ₹{formatINR(totalValue / 100)}
+            {formatINR(totalValue / 100)}
           </p>
         </div>
         <div className="rounded-lg bg-emerald-50 p-2.5 ring-1 ring-emerald-100 dark:bg-emerald-900/10 dark:ring-emerald-900/40">
           <p className="text-xs text-green-700 dark:text-green-400">Funded</p>
           <p className="font-bold text-green-900 dark:text-green-300">
-            ₹{formatINR(completedValue / 100)}
+            {formatINR(completedValue / 100)}
           </p>
         </div>
       </div>

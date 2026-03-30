@@ -1,6 +1,6 @@
 import { formatINR } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
-import { CheckCircle2, Clock, MessageSquare, TrendingUp } from 'lucide-react';
+import { CheckCircle2, MessageSquare, TrendingUp } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 const proposalStatusColor = {
@@ -32,23 +32,25 @@ export function ProposalCard({ proposal, isDeveloper = false, onAction = null })
 
   return (
     <div className={cn(
-      'rounded-lg border bg-white p-4 transition-all dark:bg-gray-900',
-      isBoosted ? 'border-accent shadow-md shadow-accent/20 dark:shadow-accent/10' : 'border-gray-200 dark:border-gray-700'
+      'group rounded-xl border bg-white/90 p-5 transition-all dark:bg-gray-900/95',
+      isBoosted
+        ? 'border-accent/40 shadow-[0_18px_35px_-25px_rgba(168,85,247,0.45)]'
+        : 'border-slate-200/90 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_18px_35px_-25px_rgba(59,130,246,0.35)] dark:border-gray-700'
     )}>
       {/* Header with status and boost badge */}
-      <div className="mb-3 flex items-start justify-between">
+      <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <img
               src={isDeveloper ? clientAvatar : proposal?.developer?.avatar}
               alt={isDeveloper ? clientName : proposal?.developer?.name}
-              className="h-10 w-10 rounded-full object-cover"
+              className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow-sm"
             />
             <div className="flex-1">
-              <p className="font-semibold text-gray-900 dark:text-white">
+              <p className="text-xl font-bold leading-tight text-slate-900 dark:text-white sm:text-2xl">
                 {isDeveloper ? clientName : proposal?.developer?.name}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-slate-500 dark:text-gray-400">
                 {formatDate(new Date(proposal.createdAt))}
               </p>
             </div>
@@ -56,12 +58,12 @@ export function ProposalCard({ proposal, isDeveloper = false, onAction = null })
         </div>
         <div className="flex items-center gap-2">
           {isBoosted && (
-            <div className="flex items-center gap-1 rounded-full bg-accent/10 px-2 py-1">
+            <div className="flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1.5 ring-1 ring-accent/20">
               <TrendingUp className="h-3 w-3 text-accent" />
               <span className="text-xs font-semibold text-accent">Boosted</span>
             </div>
           )}
-          <div className={cn('border rounded-full px-3 py-1 text-xs font-semibold', proposalStatusColor[proposal.status])}>
+          <div className={cn('rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm', proposalStatusColor[proposal.status])}>
             {proposalStatusLabel[proposal.status]}
           </div>
         </div>
@@ -69,11 +71,11 @@ export function ProposalCard({ proposal, isDeveloper = false, onAction = null })
 
       {/* Proposal details for requirement owner */}
       {!isDeveloper && (
-        <div className="mb-3">
-          <p className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-white">
+        <div className="mb-4">
+          <p className="line-clamp-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
             {requirementTitle}
           </p>
-          <p className="mt-1 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
+          <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-600 dark:text-gray-300">
             {proposal.coverLetter}
           </p>
         </div>
@@ -89,36 +91,36 @@ export function ProposalCard({ proposal, isDeveloper = false, onAction = null })
       )}
 
       {/* Stats row */}
-      <div className="mb-3 grid grid-cols-3 gap-3 border-t border-gray-200 pt-3 dark:border-gray-700">
+      <div className="mb-4 grid grid-cols-3 gap-3 border-t border-slate-200 pt-4 dark:border-gray-700">
         <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Price</p>
-          <p className="font-extrabold text-slate-900 dark:text-primary-300">{formatINR(priceInMinorUnit / 100)}</p>
+          <p className="text-xs font-medium text-slate-500 dark:text-gray-400">Price</p>
+          <p className="text-2xl font-bold text-slate-800 dark:text-primary-300">{formatINR(priceInMinorUnit)}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Delivery</p>
-          <p className="font-bold text-slate-900 dark:text-white">{proposal.deliveryDays}d</p>
+          <p className="text-xs font-medium text-slate-500 dark:text-gray-400">Delivery</p>
+          <p className="text-2xl font-bold text-slate-800 dark:text-white">{proposal.deliveryDays}d</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Milestones</p>
-          <p className="font-bold text-slate-900 dark:text-white">{proposal.milestones?.length || 0}</p>
+          <p className="text-xs font-medium text-slate-500 dark:text-gray-400">Milestones</p>
+          <p className="text-2xl font-bold text-slate-800 dark:text-white">{proposal.milestones?.length || 0}</p>
         </div>
       </div>
 
       {/* Actions row */}
       {onAction && (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {proposal.status === 'pending' && !isDeveloper && (
             <>
               <button
                 onClick={() => onAction('accept', proposalId)}
-                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-green-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-600 to-green-700 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-md hover:shadow-green-700/35 dark:from-green-700 dark:to-green-600"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Accept
               </button>
               <button
                 onClick={() => onAction('reject', proposalId)}
-                className="flex-1 rounded-lg border border-gray-300 bg-white py-2 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 Reject
               </button>
@@ -128,7 +130,7 @@ export function ProposalCard({ proposal, isDeveloper = false, onAction = null })
             <>
               <button
                 onClick={() => onAction('withdraw', proposalId)}
-                className="flex-1 rounded-lg border border-gray-300 bg-white py-2 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 Withdraw
               </button>
@@ -138,7 +140,7 @@ export function ProposalCard({ proposal, isDeveloper = false, onAction = null })
             <>
               <button
                 onClick={() => onAction('shortlist', proposalId)}
-                className="flex-1 rounded-lg border border-primary py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 dark:border-accent dark:text-accent dark:hover:bg-accent/10"
+                className="flex-1 rounded-xl border border-primary px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 dark:border-accent dark:text-accent dark:hover:bg-accent/10"
               >
                 Shortlist
               </button>
@@ -146,9 +148,9 @@ export function ProposalCard({ proposal, isDeveloper = false, onAction = null })
           )}
           <button
             onClick={() => onAction('message', proposalId)}
-            className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
           >
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="h-4 w-4 text-black dark:text-accent stroke-[2]" />
           </button>
         </div>
       )}
