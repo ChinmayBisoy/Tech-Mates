@@ -9,6 +9,8 @@ const router = express.Router();
 router.get('/rooms', verifyJWT, chatController.getRooms);
 router.post('/rooms', verifyJWT, validate(createRoomSchema), chatController.createRoom);
 router.get('/rooms/:roomId/messages', verifyJWT, chatController.getMessages);
+router.delete('/rooms/:roomId/messages', verifyJWT, chatController.clearRoomMessages);
+router.delete('/messages/:messageId/me', verifyJWT, chatController.deleteMessageForMe);
 router.delete('/messages/:messageId', verifyJWT, chatController.deleteMessage);
 
 module.exports = router;

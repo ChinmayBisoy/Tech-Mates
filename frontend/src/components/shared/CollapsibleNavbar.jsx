@@ -17,7 +17,13 @@ export function CollapsibleNavbar() {
   const { isAuthenticated, user, isDeveloper, isUser, logout } = useAuth()
   const isDark = useThemeStore((state) => state.isDark)
   const toggleDarkMode = useThemeStore((state) => state.toggleDarkMode)
-  const { unreadCount } = useNotificationStore()
+  const unreadMessageNotificationCount = useNotificationStore((state) =>
+    (state.notifications || []).filter((item) => !item.read && item.type === 'new_message').length
+  )
+  const unreadNonMessageNotificationCount = useNotificationStore((state) =>
+    (state.notifications || []).filter((item) => !item.read && item.type !== 'new_message').length
+  )
+  const shouldShowChatDot = unreadMessageNotificationCount > 0
   const [isHovered, setIsHovered] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -115,6 +121,7 @@ export function CollapsibleNavbar() {
   ]
 
   const dashboardPath = '/dashboard'
+  const isChatRoute = location.pathname.startsWith('/chat') || location.pathname.startsWith('/messages')
 
   const isActive = (path) => location.pathname === path
 
@@ -152,10 +159,8 @@ export function CollapsibleNavbar() {
                 title="Notifications"
               >
                 <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
+                {unreadNonMessageNotificationCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                 )}
               </button>
             )}
@@ -164,10 +169,13 @@ export function CollapsibleNavbar() {
             {isAuthenticated && (
               <button
                 onClick={() => navigate('/messages')}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors relative"
                 title="Messages"
               >
                 <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                {shouldShowChatDot && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                )}
               </button>
             )}
 
@@ -468,10 +476,10 @@ export function CollapsibleNavbar() {
           'flex-1 transition-all duration-300 flex flex-col min-h-[calc(100vh-64px)]',
           isMobileOpen ? 'ml-0' : isHovered ? 'md:ml-64' : 'md:ml-20'
         )}>
-          <div className="flex-1 overflow-auto">
+          <div className={cn('flex-1', isChatRoute ? 'overflow-hidden' : 'overflow-auto')}>
             <Outlet />
           </div>
-          <Footer />
+          {!isChatRoute && <Footer />}
         </main>
       </div>
 

@@ -108,13 +108,13 @@ export function ContractCard({ contract }) {
         <div className="rounded-lg bg-gray-50 p-2.5 ring-1 ring-gray-100 dark:bg-gray-800 dark:ring-gray-700/80">
           <p className="text-xs text-gray-600 dark:text-gray-400">Total</p>
           <p className="font-bold text-gray-900 dark:text-white">
-            {formatINR(totalValue / 100)}
+            {formatINR(totalValue)}
           </p>
         </div>
         <div className="rounded-lg bg-emerald-50 p-2.5 ring-1 ring-emerald-100 dark:bg-emerald-900/10 dark:ring-emerald-900/40">
           <p className="text-xs text-green-700 dark:text-green-400">Funded</p>
           <p className="font-bold text-green-900 dark:text-green-300">
-            {formatINR(completedValue / 100)}
+            {formatINR(completedValue)}
           </p>
         </div>
       </div>

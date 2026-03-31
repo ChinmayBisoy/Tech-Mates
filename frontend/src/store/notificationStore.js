@@ -2,56 +2,7 @@ import { create } from 'zustand';
 
 export const useNotificationStore = create((set) => ({
   // Notifications list
-  notifications: [
-    {
-      id: 'notif_1',
-      type: 'auction',
-      title: 'You\'ve been outbid!',
-      message: 'Someone placed a higher bid on Vintage Camera auction.',
-      icon: 'gavel',
-      color: 'warning',
-      createdAt: new Date(Date.now() - 300000),
-      read: false,
-      link: '/marketplace/auctions',
-      actionLabel: 'View Auction',
-    },
-    {
-      id: 'notif_2',
-      type: 'payment',
-      title: 'Payment Received',
-      message: 'Payment of $850.00 from bob_buyer has been received.',
-      icon: 'check-circle',
-      color: 'success',
-      createdAt: new Date(Date.now() - 600000),
-      read: false,
-      link: '/wallet/transactions',
-      actionLabel: 'View Transaction',
-    },
-    {
-      id: 'notif_3',
-      type: 'message',
-      title: 'New Message',
-      message: 'alice_seller sent you a message: "Hi, can you ship today?"',
-      icon: 'message-square',
-      color: 'info',
-      createdAt: new Date(Date.now() - 900000),
-      read: true,
-      link: '/messages',
-      actionLabel: 'View Message',
-    },
-    {
-      id: 'notif_4',
-      type: 'dispute',
-      title: 'Dispute Opened',
-      message: 'A buyer has opened a dispute for order TRX_001.',
-      icon: 'alert-circle',
-      color: 'danger',
-      createdAt: new Date(Date.now() - 1800000),
-      read: true,
-      link: '/marketplace/disputes',
-      actionLabel: 'View Dispute',
-    },
-  ],
+  notifications: [],
 
   // Notification preferences
   preferences: {
@@ -102,33 +53,42 @@ export const useNotificationStore = create((set) => ({
 
   // Notification statistics
   stats: {
-    totalNotifications: 4,
-    unreadCount: 2,
-    last24hCount: 2,
-    last7dCount: 4,
+    totalNotifications: 0,
+    unreadCount: 0,
+    last24hCount: 0,
+    last7dCount: 0,
   },
+
+  unreadCount: 0,
 
   // Notification queue (pending)
   queue: [],
 
   // Actions
   addNotification: (notification) => {
+    const normalizedNotification = {
+      id: String(notification?.id || notification?._id || `notif_${Date.now()}`),
+      type: notification?.type || 'info',
+      title: notification?.title || 'Notification',
+      message: notification?.message || '',
+      createdAt: notification?.createdAt ? new Date(notification.createdAt) : new Date(),
+      read: Boolean(notification?.read ?? notification?.isRead ?? false),
+      data: notification?.data || {},
+      link: notification?.data?.roomId ? `/messages?roomId=${notification.data.roomId}` : notification?.link,
+    }
+
     set((state) => ({
       notifications: [
-        {
-          id: `notif_${Date.now()}`,
-          createdAt: new Date(),
-          read: false,
-          ...notification,
-        },
+        normalizedNotification,
         ...state.notifications,
       ].slice(0, 100),
       stats: {
         ...state.stats,
         totalNotifications: state.stats.totalNotifications + 1,
-        unreadCount: state.stats.unreadCount + 1,
+        unreadCount: normalizedNotification.read ? state.stats.unreadCount : state.stats.unreadCount + 1,
         last24hCount: state.stats.last24hCount + 1,
       },
+      unreadCount: normalizedNotification.read ? state.unreadCount : state.unreadCount + 1,
     }));
   },
 
@@ -141,6 +101,7 @@ export const useNotificationStore = create((set) => ({
         ...state.stats,
         unreadCount: Math.max(0, state.stats.unreadCount - 1),
       },
+      unreadCount: Math.max(0, state.unreadCount - 1),
     }));
   },
 
@@ -151,6 +112,7 @@ export const useNotificationStore = create((set) => ({
         ...state.stats,
         unreadCount: 0,
       },
+      unreadCount: 0,
     }));
   },
 
@@ -169,7 +131,88 @@ export const useNotificationStore = create((set) => ({
         last24hCount: 0,
         last7dCount: 0,
       },
+      unreadCount: 0,
     });
+  },
+
+  markRead: (notificationId) => {
+    set((state) => {
+      const target = state.notifications.find((item) => item.id === notificationId)
+      if (!target || target.read) {
+        return state
+      }
+
+      return {
+        notifications: state.notifications.map((item) =>
+          item.id === notificationId ? { ...item, read: true } : item
+        ),
+        stats: {
+          ...state.stats,
+          unreadCount: Math.max(0, state.stats.unreadCount - 1),
+        },
+        unreadCount: Math.max(0, state.unreadCount - 1),
+      }
+    })
+  },
+
+  markTypeAsRead: (type) => {
+    set((state) => {
+      const unreadOfType = state.notifications.filter(
+        (item) => !item.read && item.type === type
+      ).length
+
+      if (unreadOfType === 0) {
+        return state
+      }
+
+      return {
+        notifications: state.notifications.map((item) =>
+          item.type === type ? { ...item, read: true } : item
+        ),
+        stats: {
+          ...state.stats,
+          unreadCount: Math.max(0, state.stats.unreadCount - unreadOfType),
+        },
+        unreadCount: Math.max(0, state.unreadCount - unreadOfType),
+      }
+    })
+  },
+
+  setNotifications: (notifications = [], unreadCount = null) => {
+    const normalizedNotifications = notifications.map((notification) => ({
+      ...notification,
+      id: String(notification?.id || notification?._id || `notif_${Date.now()}`),
+      createdAt: notification?.createdAt ? new Date(notification.createdAt) : new Date(),
+      read: Boolean(notification?.read ?? notification?.isRead ?? false),
+    }))
+
+    const computedUnreadCount =
+      typeof unreadCount === 'number'
+        ? unreadCount
+        : normalizedNotifications.filter((item) => !item.read).length
+
+    set((state) => ({
+      notifications: normalizedNotifications,
+      stats: {
+        ...state.stats,
+        totalNotifications: normalizedNotifications.length,
+        unreadCount: computedUnreadCount,
+      },
+      unreadCount: computedUnreadCount,
+    }))
+  },
+
+  clearNotifications: () => {
+    set((state) => ({
+      ...state,
+      notifications: [],
+      stats: {
+        ...state.stats,
+        totalNotifications: 0,
+        unreadCount: 0,
+      },
+      unreadCount: 0,
+    }))
   },
 
   updatePreferences: (newPreferences) => {

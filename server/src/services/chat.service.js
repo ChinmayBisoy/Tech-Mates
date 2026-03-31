@@ -61,6 +61,7 @@ const getMessages = async (roomId, userId, pagination = {}) => {
   const query = {
     roomId,
     isDeleted: false,
+    hiddenFor: { $ne: userId },
   };
 
   const [messages, total] = await Promise.all([
@@ -78,6 +79,7 @@ const getMessages = async (roomId, userId, pagination = {}) => {
       senderId: { $ne: userId },
       readBy: { $ne: userId },
       isDeleted: false,
+      hiddenFor: { $ne: userId },
     },
     {
       $addToSet: { readBy: userId },
@@ -141,7 +143,73 @@ const deleteMessage = async (messageId, senderId) => {
   message.deletedAt = new Date();
   await message.save();
 
-  return { success: true };
+  return { success: true, messageId: String(message._id), roomId: String(message.roomId) };
+};
+
+const deleteMessageForMe = async (messageId, userId) => {
+  const message = await Message.findOne({ _id: messageId, isDeleted: false });
+
+  if (!message) {
+    throw new ApiError(404, 'Message not found');
+  }
+
+  const room = await ChatRoom.findById(message.roomId);
+  if (!room || !room.isActive) {
+    throw new ApiError(404, 'Chat room not found');
+  }
+
+  if (!room.participants.some((id) => String(id) === String(userId))) {
+    throw new ApiError(403, 'You are not a participant of this room');
+  }
+
+  await Message.updateOne(
+    { _id: messageId },
+    {
+      $addToSet: { hiddenFor: userId },
+    }
+  );
+
+  return {
+    success: true,
+    messageId: String(message._id),
+    roomId: String(message.roomId),
+  };
+};
+
+const clearRoomMessages = async (roomId, userId) => {
+  const room = await ChatRoom.findById(roomId);
+
+  if (!room || !room.isActive) {
+    throw new ApiError(404, 'Chat room not found');
+  }
+
+  if (!room.participants.some((id) => String(id) === String(userId))) {
+    throw new ApiError(403, 'You are not a participant of this room');
+  }
+
+  const result = await Message.updateMany(
+    {
+      roomId,
+      isDeleted: false,
+    },
+    {
+      $set: {
+        isDeleted: true,
+        deletedAt: new Date(),
+      },
+    }
+  );
+
+  room.lastMessage = '';
+  room.lastMessageAt = null;
+  room.lastMessageBy = null;
+  await room.save();
+
+  return {
+    success: true,
+    clearedCount: result.modifiedCount || 0,
+    roomId: String(roomId),
+  };
 };
 
 module.exports = {
@@ -150,4 +218,6 @@ module.exports = {
   getMessages,
   sendMessage,
   deleteMessage,
+  deleteMessageForMe,
+  clearRoomMessages,
 };

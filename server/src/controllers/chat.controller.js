@@ -27,7 +27,36 @@ const createRoom = asyncHandler(async (req, res) => {
 
 const deleteMessage = asyncHandler(async (req, res) => {
   const result = await chatService.deleteMessage(req.params.messageId, req.user._id);
+
+  if (global.io && result?.roomId && result?.messageId) {
+    global.io.to(String(result.roomId)).emit('chat:message_deleted', {
+      roomId: String(result.roomId),
+      messageId: String(result.messageId),
+      deletedBy: String(req.user._id),
+      scope: 'everyone',
+    });
+  }
+
   res.json(new ApiResponse(200, result, 'Message deleted successfully'));
+});
+
+const deleteMessageForMe = asyncHandler(async (req, res) => {
+  const result = await chatService.deleteMessageForMe(req.params.messageId, req.user._id);
+  res.json(new ApiResponse(200, result, 'Message deleted for you successfully'));
+});
+
+const clearRoomMessages = asyncHandler(async (req, res) => {
+  const { roomId } = req.params;
+  const result = await chatService.clearRoomMessages(roomId, req.user._id);
+
+  if (global.io) {
+    global.io.to(String(roomId)).emit('chat:cleared', {
+      roomId: String(roomId),
+      clearedBy: String(req.user._id),
+    });
+  }
+
+  res.json(new ApiResponse(200, result, 'Chat cleared successfully'));
 });
 
 module.exports = {
@@ -35,4 +64,6 @@ module.exports = {
   getMessages,
   createRoom,
   deleteMessage,
+  deleteMessageForMe,
+  clearRoomMessages,
 };

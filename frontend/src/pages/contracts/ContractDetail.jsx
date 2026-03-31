@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import * as contractAPI from '@/api/contract.api';
+import { chatAPI } from '@/api/chat.api';
 import { MilestoneTimeline } from '@/components/contracts/MilestoneTimeline';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { useAuth } from '@/hooks/useAuth';
@@ -182,6 +183,32 @@ export default function ContractDetail() {
     }
   };
 
+  const handleOpenChat = async () => {
+    const counterpartUserId = userRole === 'client' ? contract?.developer?.id : contract?.client?.id;
+
+    if (!counterpartUserId) {
+      toast.error('Unable to find chat recipient for this contract');
+      return;
+    }
+
+    try {
+      const room = await chatAPI.createRoom({
+        userId: counterpartUserId,
+        contractId: id,
+      });
+
+      const roomId = room?._id || room?.id;
+      if (!roomId) {
+        toast.error('Failed to open contract chat');
+        return;
+      }
+
+      navigate(`/chat/${roomId}`);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to open chat');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 dark:bg-gray-950">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -252,19 +279,19 @@ export default function ContractDetail() {
           <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
             <p className="text-xs text-gray-600 dark:text-gray-400">Total Value</p>
             <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-              ₹{formatINR(totalValue / 100)}
+              {formatINR(totalValue)}
             </p>
           </div>
           <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-900/20">
             <p className="text-xs text-green-700 dark:text-green-400">Completed Value</p>
             <p className="mt-2 text-2xl font-bold text-green-900 dark:text-green-300">
-              ₹{formatINR(completedValue / 100)}
+              {formatINR(completedValue)}
             </p>
           </div>
           <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-900 dark:bg-orange-900/20">
             <p className="text-xs text-orange-700 dark:text-orange-400">Pending Value</p>
             <p className="mt-2 text-2xl font-bold text-orange-900 dark:text-orange-300">
-              ₹{formatINR(pendingValue / 100)}
+              {formatINR(pendingValue)}
             </p>
           </div>
         </div>
@@ -343,7 +370,7 @@ export default function ContractDetail() {
                 Use our chat feature to discuss project details and updates
               </p>
               <button
-                onClick={() => navigate(`/chat/${id}`)}
+                onClick={handleOpenChat}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary/90 dark:bg-accent dark:hover:bg-accent/90"
               >
                 <MessageCircle className="h-5 w-5" />

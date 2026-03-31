@@ -1,27 +1,41 @@
-import { formatDistanceToNow, format, isBefore, addDays } from 'date-fns'
+import { formatDistanceToNow, format, isBefore, isValid } from 'date-fns'
+
+const toValidDate = (value) => {
+  const parsed = new Date(value)
+  return isValid(parsed) ? parsed : null
+}
 
 export const formatDate = (date) => {
-  return format(new Date(date), 'dd MMM yyyy')
+  const parsed = toValidDate(date)
+  return parsed ? format(parsed, 'dd MMM yyyy') : '-'
 }
 
 export const formatRelative = (date) => {
-  return formatDistanceToNow(new Date(date), { addSuffix: true })
+  const parsed = toValidDate(date)
+  return parsed ? formatDistanceToNow(parsed, { addSuffix: true }) : '-'
 }
 
 export const formatAbsolute = (date) => {
-  return format(new Date(date), 'dd MMM yyyy')
+  const parsed = toValidDate(date)
+  return parsed ? format(parsed, 'dd MMM yyyy') : '-'
 }
 
 export const formatTime = (date) => {
-  return format(new Date(date), 'HH:mm')
+  const parsed = toValidDate(date)
+  return parsed ? format(parsed, 'HH:mm') : '-'
 }
 
 export const formatDateTime = (date) => {
-  return format(new Date(date), 'dd MMM yyyy HH:mm')
+  const parsed = toValidDate(date)
+  return parsed ? format(parsed, 'dd MMM yyyy HH:mm') : '-'
 }
 
 export const formatDeadline = (deadline) => {
-  const deadline_date = new Date(deadline)
+  const deadline_date = toValidDate(deadline)
+  if (!deadline_date) {
+    return '-'
+  }
+
   const today = new Date()
 
   if (isBefore(deadline_date, today)) {

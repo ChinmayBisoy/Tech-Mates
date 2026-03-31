@@ -407,11 +407,23 @@ const router = createBrowserRouter([
       },
       {
         path: 'chat',
-        element: <StubPage title="Chat" />,
+        element: (
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <Messages_Phase9 />
+            </Suspense>
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'chat/:roomId',
-        element: <StubPage title="Chat" />,
+        element: (
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <Messages_Phase9 />
+            </Suspense>
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'payments/earnings',

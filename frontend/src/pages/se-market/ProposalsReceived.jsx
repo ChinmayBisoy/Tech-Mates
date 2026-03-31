@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import * as requirementAPI from '@/api/requirement.api';
 import * as proposalAPI from '@/api/proposal.api';
+import { chatAPI } from '@/api/chat.api';
 import { ProposalCard } from '@/components/se-market/ProposalCard';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
@@ -208,9 +209,34 @@ export default function ProposalsReceived() {
                 <ProposalCard
                   proposal={proposal}
                   isDeveloper={false}
-                  onAction={(action, proposalId) => {
+                  onAction={async (action, proposalId) => {
                     if (action === 'message') {
-                      toast('Messaging will be available soon.');
+                      const targetProposal = proposals.find(
+                        (item) => item.id === proposalId || item._id === proposalId
+                      );
+                      const developerId =
+                        targetProposal?.developer?.id ||
+                        targetProposal?.developer?._id ||
+                        targetProposal?.developerId;
+
+                      if (!developerId) {
+                        toast.error('Unable to open chat for this proposal');
+                        return;
+                      }
+
+                      try {
+                        const room = await chatAPI.createRoom({ userId: developerId });
+                        const roomId = room?._id || room?.id;
+
+                        if (!roomId) {
+                          toast.error('Failed to open chat room');
+                          return;
+                        }
+
+                        navigate(`/chat/${roomId}`);
+                      } catch (error) {
+                        toast.error(error?.response?.data?.message || 'Failed to open chat');
+                      }
                       return;
                     }
                     actionMutation.mutate({ action, proposalId });

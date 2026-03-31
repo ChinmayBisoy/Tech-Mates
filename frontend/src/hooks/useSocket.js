@@ -1,16 +1,37 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useAuth } from './useAuth'
 import { useNotifications } from './useNotifications'
+import { useChatStore } from '@/store/chatStore'
 
 let socketInstance = null
+
+const getSocketServerUrl = () => {
+  if (import.meta.env.VITE_SOCKET_URL) {
+    return import.meta.env.VITE_SOCKET_URL
+  }
+
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+  return String(apiUrl).replace(/\/api\/?$/, '')
+}
 
 export const useSocket = () => {
   const { accessToken, isAuthenticated } = useAuth()
   const { addNotification } = useNotifications()
+  const addIncomingMessage = useChatStore((state) => state.addIncomingMessage)
   const socketRef = useRef(null)
 
   useEffect(() => {
-    if (!isAuthenticated || !accessToken || socketInstance) {
+    if (!isAuthenticated || !accessToken) {
+      if (socketInstance?.connected) {
+        socketInstance.disconnect()
+      }
+      socketInstance = null
+      socketRef.current = null
+      return
+    }
+
+    if (socketInstance) {
+      socketRef.current = socketInstance
       return
     }
 
@@ -18,7 +39,7 @@ export const useSocket = () => {
       try {
         const { io } = await import('socket.io-client')
 
-        socketInstance = io(import.meta.env.VITE_SOCKET_URL, {
+        socketInstance = io(getSocketServerUrl(), {
           auth: {
             token: accessToken,
           },
@@ -42,6 +63,10 @@ export const useSocket = () => {
           addNotification(notification)
         })
 
+        socketInstance.on('chat:message', (incomingMessage) => {
+          addIncomingMessage(incomingMessage)
+        })
+
         socketInstance.on('connect_error', (error) => {
           console.error('Socket connection error:', error)
         })
@@ -53,16 +78,12 @@ export const useSocket = () => {
     initializeSocket()
 
     return () => {
-      if (socketInstance && socketInstance.connected) {
-        socketInstance.disconnect()
-        socketInstance = null
-        socketRef.current = null
-      }
+      socketRef.current = socketInstance
     }
-  }, [isAuthenticated, accessToken, addNotification])
+  }, [isAuthenticated, accessToken, addNotification, addIncomingMessage])
 
   const emit = useCallback((event, data) => {
-    if (socketInstance && socketInstance.connected) {
+    if (socketInstance) {
       socketInstance.emit(event, data)
     }
   }, [])

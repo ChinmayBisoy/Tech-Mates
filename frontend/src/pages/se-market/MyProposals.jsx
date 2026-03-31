@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import * as proposalAPI from '@/api/proposal.api';
+import { chatAPI } from '@/api/chat.api';
 import { ProposalCard } from '@/components/se-market/ProposalCard';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
@@ -74,12 +75,20 @@ export default function MyProposals() {
   const proposals = rawProposals.map((proposal) => {
     const requirementObj = proposal?.requirement || proposal?.requirementId || {};
     const requirementId = requirementObj?._id || requirementObj?.id || proposal?.requirementId;
+    const requirementClientObj = requirementObj?.client || requirementObj?.clientId || {};
+    const counterpartUserId =
+      requirementClientObj?._id ||
+      requirementClientObj?.id ||
+      proposal?.client?._id ||
+      proposal?.client?.id ||
+      proposal?.clientId;
 
     return {
       ...proposal,
       id: proposal?.id || proposal?._id,
       price: proposal?.price ?? proposal?.proposedPrice ?? 0,
       requirementId,
+      counterpartUserId,
       requirement: {
         ...(proposal?.requirement || {}),
         ...(typeof requirementObj === 'object' ? requirementObj : {}),
@@ -168,7 +177,29 @@ export default function MyProposals() {
         },
       });
     } else if (action === 'message') {
-      navigate(`/chat/${proposalId}`);
+      const targetProposal = proposals.find((proposal) => proposal.id === proposalId || proposal._id === proposalId);
+      const counterpartUserId = targetProposal?.counterpartUserId;
+
+      if (!counterpartUserId) {
+        toast.error('Unable to find recipient for this chat');
+        return;
+      }
+
+      chatAPI
+        .createRoom({ userId: counterpartUserId })
+        .then((room) => {
+          const resolvedRoomId = room?._id || room?.id;
+
+          if (!resolvedRoomId) {
+            toast.error('Failed to open chat room');
+            return;
+          }
+
+          navigate(`/chat/${resolvedRoomId}`);
+        })
+        .catch((error) => {
+          toast.error(error?.response?.data?.message || 'Failed to open chat');
+        });
     }
   };
 
