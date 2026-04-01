@@ -44,14 +44,7 @@ app.use(helmet({
   },
 }));
 app.use(cors({
-  origin(origin, callback) {
-    if (!origin || origin === allowedOrigin) {
-      callback(null, true);
-      return;
-    }
-
-    callback(new ApiError(403, 'CORS origin denied'));
-  },
+  origin: process.env.CLIENT_URL,
   credentials: true,
 }));
 

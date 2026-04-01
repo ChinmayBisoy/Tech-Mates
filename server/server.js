@@ -8,7 +8,7 @@ const { initSocket } = require('./src/socket/index');
 
 connectToDB();
 
-const PORT = Number(process.env.PORT || 3000);
+const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 const io = initSocket(server);
 global.io = io;
