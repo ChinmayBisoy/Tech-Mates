@@ -128,50 +128,7 @@ export default function UserProfilePage() {
             </div>
           </div>
         </div>
-
-        {/* Hero/Profile Card */}
-        <div className="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface shadow-lg overflow-hidden mb-6 relative">
-          <div className="h-28 bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 relative">
-            <div className="pointer-events-none absolute -top-20 right-0 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute top-4 right-6">
-              <button
-                onClick={() => navigate('/profile/edit')}
-                className="inline-flex items-center gap-2 rounded-xl bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 px-4 py-2 text-primary-600 dark:text-accent font-semibold transition-colors whitespace-nowrap shadow-lg"
-              >
-                <Edit3 className="w-4 h-4" />
-                Edit
-              </button>
-            </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2.5 py-1 rounded-full">
-              <TrendingUp className="w-3.5 h-3.5" />
-              In Demand
-            <div className="flex flex-col sm:flex-row gap-4 mb-5">
-              <div className="relative w-fit">
-              <img
-                src={profile.avatar}
-                alt={profile.name}
-                className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover border-4 border-white dark:border-surface shadow-xl"
-              />
-              {profile.isVerified && (
-                <span className="absolute -bottom-1 -right-1 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-600 text-white text-xs font-semibold">
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  Verified
-                </span>
-              )}
-            </div>
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface shadow-sm p-6">
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
-                  {profile.name}
-                </h1>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
-                  <Award className="w-3.5 h-3.5" />
-                  {profile.tier} Tier
-                </span>
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 capitalize mt-1">
-                {profile.role}
-              </p>
-            </div>
-          </div>
+      </div>
+    </div>
+  );
+}

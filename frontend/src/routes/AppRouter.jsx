@@ -5,6 +5,7 @@ import { RoleRoute } from './RoleRoute'
 import OwnerRoute from '@/components/admin/OwnerRoute'
 import App from '@/App'
 import { PageLoader } from '@/components/shared/PageLoader'
+import ErrorPage from '@/components/shared/ErrorPage'
 
 // Lazy imports for SE Market pages
 const PostRequirementPage = lazy(() => import('@/pages/se-market/PostRequirement'))
@@ -34,10 +35,10 @@ const NotificationsPage = lazy(() => import('@/pages/Notifications'))
 const SettingsPage = lazy(() => import('@/pages/Settings'))
 const HelpPage = lazy(() => import('@/pages/Help'))
 const AdminPage = lazy(() => import('@/pages/Admin'))
-const UserProfilePage = lazy(() => import('@/pages/profile/PublicProfile').then((module) => ({ default: module.PublicProfile })))
 const ProfileSetupPage = lazy(() => import('@/pages/profile/ProfileSetup'))
 const SearchPage = lazy(() => import('@/pages/Search'))
 const BrowseDevelopersPage = lazy(() => import('@/pages/BrowseDevelopers'))
+const MySubscription = lazy(() => import('@/pages/MySubscription'))
 
 // Lazy import for Activity Feed
 const ActivityFeed = lazy(() => import('@/pages/ActivityFeed'))
@@ -59,6 +60,11 @@ const NotificationCenter_Phase9 = lazy(() => import('@/pages/phase9/Notification
 // Lazy imports for Phase 10.1 - Owner Admin Dashboard
 const OwnerLogin = lazy(() => import('@/pages/OwnerLogin'))
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'))
+
+// Lazy imports for Phase 8 - AI Recommendations
+const RecommendationsPage = lazy(() => 
+  import('@/components/shared/RecommendationsEngine').then(m => ({ default: m.RecommendationsPage }))
+)
 
 // Lazy imports for Phase 10.2 - Advanced Ratings & Reviews
 const ReviewsPage_Phase10 = lazy(() => import('@/pages/ReviewsPage'))
@@ -94,6 +100,7 @@ const router = createBrowserRouter([
           const { Home } = await import('@/pages/Home')
           return { Component: Home }
         },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'login',
@@ -101,6 +108,7 @@ const router = createBrowserRouter([
           const { Login } = await import('@/pages/auth/Login')
           return { Component: Login }
         },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'register',
@@ -108,6 +116,7 @@ const router = createBrowserRouter([
           const { Register } = await import('@/pages/auth/Register')
           return { Component: Register }
         },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'forgot-password',
@@ -115,6 +124,7 @@ const router = createBrowserRouter([
           const { ForgotPassword } = await import('@/pages/auth/ForgotPassword')
           return { Component: ForgotPassword }
         },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'reset-password/:token',
@@ -122,6 +132,7 @@ const router = createBrowserRouter([
           const { ResetPassword } = await import('@/pages/auth/ResetPassword')
           return { Component: ResetPassword }
         },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'dashboard',
@@ -129,6 +140,7 @@ const router = createBrowserRouter([
           const { Dashboard } = await import('@/pages/Dashboard')
           return { Component: Dashboard }
         },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'user/dashboard',
@@ -164,6 +176,7 @@ const router = createBrowserRouter([
           const BrowseRequirements = await import('@/pages/se-market/BrowseRequirements')
           return { Component: BrowseRequirements.default }
         },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'se-market/post-requirement',
@@ -181,6 +194,7 @@ const router = createBrowserRouter([
           const RequirementDetail = await import('@/pages/se-market/RequirementDetail')
           return { Component: RequirementDetail.default }
         },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'se-market/my-requirements',
@@ -333,23 +347,39 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: 'admin',
+        path: 'subscription',
+        lazy: async () => {
+          const Subscription = await import('@/pages/Subscription')
+          return { Component: Subscription.default }
+        },
+      },
+      {
+        path: 'my-subscription',
         element: (
           <ProtectedRoute>
             <Suspense fallback={<PageLoader />}>
-              <AdminPage />
+              <MySubscription />
             </Suspense>
           </ProtectedRoute>
         ),
       },
       {
-        path: 'profile/:userId',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <UserProfilePage />
-          </Suspense>
-        ),
+        path: 'subscription/checkout/:planId',
+        lazy: async () => {
+          const SubscriptionCheckout = await import('@/pages/SubscriptionCheckout')
+          return { Component: SubscriptionCheckout.default }
+        },
+        errorElement: <ErrorPage />,
       },
+      {
+        path: 'subscription-success',
+        lazy: async () => {
+          const SubscriptionSuccess = await import('@/pages/SubscriptionSuccess')
+          return { Component: SubscriptionSuccess.default }
+        },
+        errorElement: <ErrorPage />,
+      },
+      // Profile routes - specific paths MUST come before :userId param
       {
         path: 'profile/setup',
         element: (
@@ -359,6 +389,23 @@ const router = createBrowserRouter([
             </Suspense>
           </ProtectedRoute>
         ),
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: 'profile/edit',
+        lazy: async () => {
+          const { EditProfile } = await import('@/pages/profile/EditProfile')
+          return { Component: EditProfile }
+        },
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: 'profile/:userId',
+        lazy: async () => {
+          const { default: PublicProfile } = await import('@/pages/profile/PublicProfile')
+          return { Component: PublicProfile }
+        },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'search',
@@ -390,6 +437,7 @@ const router = createBrowserRouter([
           const ContractList = await import('@/pages/contracts/ContractList')
           return { Component: ContractList.default }
         },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'contracts/:id',
@@ -397,37 +445,31 @@ const router = createBrowserRouter([
           const ContractDetail = await import('@/pages/contracts/ContractDetail')
           return { Component: ContractDetail.default }
         },
-      },
-      {
-        path: 'profile/edit',
-        lazy: async () => {
-          const { EditProfile } = await import('@/pages/profile/EditProfile')
-          return { Component: EditProfile }
-        },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'chat',
-        element: (
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <Messages_Phase9 />
-            </Suspense>
-          </ProtectedRoute>
-        ),
+        lazy: async () => {
+          const ChatPage = await import('@/pages/ChatPage')
+          return { Component: ChatPage.default }
+        },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'chat/:roomId',
-        element: (
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <Messages_Phase9 />
-            </Suspense>
-          </ProtectedRoute>
-        ),
+        lazy: async () => {
+          const ChatPage = await import('@/pages/ChatPage')
+          return { Component: ChatPage.default }
+        },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'payments/earnings',
-        element: <StubPage title="Earnings" />,
+        lazy: async () => {
+          const Earnings = await import('@/pages/Earnings')
+          return { Component: Earnings.default }
+        },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'payments/subscription',
@@ -435,7 +477,27 @@ const router = createBrowserRouter([
       },
       {
         path: 'payments/withdraw',
-        element: <StubPage title="Withdraw" />,
+        lazy: async () => {
+          const Withdraw = await import('@/pages/Withdraw')
+          return { Component: Withdraw.default }
+        },
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: 'withdraw',
+        lazy: async () => {
+          const Withdraw = await import('@/pages/Withdraw')
+          return { Component: Withdraw.default }
+        },
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: 'performance-metrics',
+        lazy: async () => {
+          const PerformanceMetrics = await import('@/pages/PerformanceMetrics')
+          return { Component: PerformanceMetrics.default }
+        },
+        errorElement: <ErrorPage />,
       },
       {
         path: 'purchase/success',
@@ -460,6 +522,17 @@ const router = createBrowserRouter([
       {
         path: 'admin/analytics',
         element: <StubPage title="Admin Analytics" />,
+      },
+      // Phase 8 - AI Recommendations Routes
+      {
+        path: 'recommendations',
+        element: (
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <RecommendationsPage />
+            </Suspense>
+          </ProtectedRoute>
+        ),
       },
       // Phase 8 - Advanced Marketplace Routes
       {

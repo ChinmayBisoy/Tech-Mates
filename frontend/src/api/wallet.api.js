@@ -80,4 +80,12 @@ export const walletAPI = {
     })
     return response.data
   },
+
+  // Get developer earnings
+  getEarnings: async (page = 1, limit = 20) => {
+    const response = await instance.get('/payments/earnings', {
+      params: { page, limit },
+    })
+    return response.data
+  },
 }

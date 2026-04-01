@@ -10,7 +10,7 @@ import { ReviewList } from '@/components/profile/ReviewList'
 import { PageLoader } from '@/components/shared/PageLoader'
 import { ErrorState } from '@/components/shared/ErrorState'
 
-export function PublicProfile() {
+function PublicProfile() {
   const { id, userId } = useParams()
   const profileId = userId || id
   const navigate = useNavigate()
@@ -196,3 +196,5 @@ export function PublicProfile() {
     </div>
   )
 }
+
+export default PublicProfile

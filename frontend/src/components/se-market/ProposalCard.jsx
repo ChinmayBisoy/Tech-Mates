@@ -146,12 +146,16 @@ export function ProposalCard({ proposal, isDeveloper = false, onAction = null })
               </button>
             </>
           )}
-          <button
-            onClick={() => onAction('message', proposalId)}
-            className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            <MessageSquare className="h-4 w-4 text-black dark:text-accent stroke-[2]" />
-          </button>
+          {proposal.status === 'accepted' && (
+            <button
+              onClick={() => onAction('message', proposalId)}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-md hover:shadow-blue-700/35 dark:from-blue-700 dark:to-blue-600"
+              title="Start conversation with this developer"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Chat
+            </button>
+          )}
         </div>
       )}
     </div>

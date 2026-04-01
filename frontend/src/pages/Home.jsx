@@ -376,7 +376,7 @@ function ClientDashboardHome() {
     enabled: Boolean(requirements.length),
   })
 
-  const proposals = Array.isArray(proposalsData) ? proposalsData : proposalsData.items || []
+  const proposals = Array.isArray(proposalsData) ? proposalsData : Array.isArray(proposalsData.items) ? proposalsData.items : []
 
   if (reqLoading || contractLoading) {
     return <PageLoader />

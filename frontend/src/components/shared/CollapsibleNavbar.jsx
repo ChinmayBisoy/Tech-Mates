@@ -1,15 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useThemeStore } from '@/store/themeStore'
 import { useNotificationStore } from '@/store/notificationStore'
-import { Footer } from '@/components/shared/Footer'
 import {
-  Moon, Sun, Bell, Search, Settings,
-  HelpCircle, Shield, LayoutDashboard, User, LogIn, LogOut,
-  Home, ShoppingBag, Code2, FileText, Menu, X, Zap,
-  Gavel, DollarSign, Hammer, AlertCircle, BarChart3, Users, MessageSquare, Star, Store,
-  Briefcase, TrendingUp, Wallet, Award, Clock, CheckCircle, ChevronDown, Lock, Crown
+  Moon, Sun, Bell, Settings,
+  HelpCircle, Shield, LayoutDashboard, User, LogOut,
+  Home, ShoppingBag, Code2, Menu, X, ChevronDown,
+  MessageSquare, TrendingUp, Briefcase, Store, Wallet,
+  Award, Clock, CheckCircle, Star, Lock, Crown, FileText
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
@@ -53,10 +52,9 @@ export function CollapsibleNavbar() {
   }, [])
 
   const publicNavItems = [
-    { icon: Home, label: 'Home', path: '/', public: true },
-    { icon: ShoppingBag, label: 'Projects', path: '/projects', public: true },
-    { icon: Code2, label: 'SE Market', path: '/se-market/browse', public: true },
-    { icon: Users, label: 'Developers', path: '/browse/developers', public: true },
+    { icon: Home, label: 'Home', path: '/' },
+    { icon: ShoppingBag, label: 'Projects', path: '/projects' },
+    { icon: Code2, label: 'SE Market', path: '/se-market/browse' },
   ]
 
   const profilePath = `/profile/${user?.id || user?._id}`
@@ -87,7 +85,7 @@ export function CollapsibleNavbar() {
     {
       icon: isProMember ? ShoppingBag : Lock,
       label: 'Post a Listing',
-      path: isProMember ? '/projects/post' : '/payments/subscription',
+      path: isProMember ? '/projects/post' : '/subscription',
       badge: isProMember ? null : 'Pro',
     },
   ]
@@ -97,7 +95,7 @@ export function CollapsibleNavbar() {
     {
       icon: isProMember ? Award : Crown,
       label: isProMember ? 'My Subscription' : 'Go Pro',
-      path: '/payments/subscription',
+      path: isProMember ? '/my-subscription' : '/subscription',
     },
   ]
 
@@ -117,16 +115,14 @@ export function CollapsibleNavbar() {
   const clientMarketplaceItems = [
     { icon: ShoppingBag, label: 'Browse Projects', path: '/projects' },
     { icon: Star, label: 'Wishlist', path: '/dashboard/wishlist' },
-    { icon: Store, label: 'My Purchases', path: '/dashboard/purchases' },
   ]
 
   const dashboardPath = '/dashboard'
-  const isChatRoute = location.pathname.startsWith('/chat') || location.pathname.startsWith('/messages')
 
   const isActive = (path) => location.pathname === path
 
   return (
-    <div className="bg-white dark:bg-base min-h-screen">
+    <>
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-white dark:bg-surface border-b border-gray-200 dark:border-gray-800">
         <div className="h-16 px-4 md:px-6 flex items-center justify-between">
@@ -149,6 +145,21 @@ export function CollapsibleNavbar() {
             </Link>
           </div>
 
+          {/* Center: Navigation (Desktop - Public Items when not authenticated) */}
+          {!isAuthenticated && (
+            <nav className="hidden md:flex items-center gap-8">
+              {publicNavItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-accent transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          )}
+
           {/* Right: Actions & Profile */}
           <div className="flex items-center gap-2 md:gap-4">
             {/* Notifications */}
@@ -168,7 +179,7 @@ export function CollapsibleNavbar() {
             {/* Messages */}
             {isAuthenticated && (
               <button
-                onClick={() => navigate('/messages')}
+                onClick={() => navigate('/chat')}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors relative"
                 title="Messages"
               >
@@ -192,12 +203,12 @@ export function CollapsibleNavbar() {
               )}
             </button>
 
-            {/* Profile Dropdown - Right Corner */}
+            {/* Profile Dropdown */}
             {isAuthenticated && user ? (
               <div ref={profileRef} className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group"
+                  className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   title="Profile Menu"
                 >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm">
@@ -237,7 +248,7 @@ export function CollapsibleNavbar() {
                         Dashboard
                       </Link>
                       <Link
-                        to={`/profile/${user.id}`}
+                        to={`/profile/${user.id || user._id}`}
                         onClick={() => setProfileOpen(false)}
                         className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                       >
@@ -309,188 +320,159 @@ export function CollapsibleNavbar() {
         </div>
       </header>
 
-      {/* Main Layout with Sidebar */}
-      <div className="flex">
-        {/* Sidebar */}
-        <aside
-          ref={navRef}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className={cn(
-            'fixed left-0 top-16 h-[calc(100vh-64px)] bg-white dark:bg-surface border-r border-gray-200 dark:border-gray-800',
-            'transition-all duration-300 flex flex-col overflow-hidden',
-            'z-30',
-            isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20',
-            isHovered && 'md:w-64'
-          )}
-        >
-          {/* Navigation Items */}
-          <div className="flex-1 overflow-y-auto py-4 space-y-1.5">
-            {/* Public Items (only for logged-out users) */}
-            {!isAuthenticated && publicNavItems.map((item) => (
-              <NavItem
-                key={item.path}
-                icon={item.icon}
-                label={item.label}
-                path={item.path}
-                isActive={isActive(item.path)}
-                isHovered={isHovered}
-                onClick={() => setIsMobileOpen(false)}
-              />
-            ))}
-
-            {/* Authenticated Content */}
-            {isAuthenticated && (
-              <>
-                {/* Developer Sidebar */}
-                {isDeveloper && (
-                  <>
-                    <SectionLabel label="Main" icon="🏠" isHovered={isHovered} />
-                    {developerMainItems.map((item) => (
-                      <NavItem
-                        key={item.path}
-                        icon={item.icon}
-                        label={item.label}
-                        path={item.path}
-                        isActive={isActive(item.path)}
-                        isHovered={isHovered}
-                        onClick={() => setIsMobileOpen(false)}
-                      />
-                    ))}
-
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
-                    <SectionLabel label="Work" icon="💼" isHovered={isHovered} />
-                    {developerWorkItems.map((item) => (
-                      <NavItem
-                        key={item.path}
-                        icon={item.icon}
-                        label={item.label}
-                        path={item.path}
-                        isActive={isActive(item.path)}
-                        isHovered={isHovered}
-                        onClick={() => setIsMobileOpen(false)}
-                      />
-                    ))}
-
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
-                    <SectionLabel label="Marketplace" icon="🛒" isHovered={isHovered} />
-                    {developerMarketplaceItems.map((item) => (
-                      <NavItem
-                        key={item.label}
-                        icon={item.icon}
-                        label={item.label}
-                        path={item.path}
-                        badge={item.badge}
-                        isActive={isActive(item.path)}
-                        isHovered={isHovered}
-                        onClick={() => setIsMobileOpen(false)}
-                      />
-                    ))}
-
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
-                    <SectionLabel label="Money" icon="💰" isHovered={isHovered} />
-                    {developerMoneyItems.map((item) => (
-                      <NavItem
-                        key={item.label}
-                        icon={item.icon}
-                        label={item.label}
-                        path={item.path}
-                        isActive={isActive(item.path)}
-                        isHovered={isHovered}
-                        onClick={() => setIsMobileOpen(false)}
-                      />
-                    ))}
-                  </>
-                )}
-
-                {/* Client Sidebar */}
-                {isUser && (
-                  <>
-                    <SectionLabel label="Main" icon="🏠" isHovered={isHovered} />
-                    {clientMainItems.map((item) => (
-                      <NavItem
-                        key={item.path}
-                        icon={item.icon}
-                        label={item.label}
-                        path={item.path}
-                        isActive={isActive(item.path)}
-                        isHovered={isHovered}
-                        onClick={() => setIsMobileOpen(false)}
-                      />
-                    ))}
-
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
-                    <SectionLabel label="Hire" icon="📝" isHovered={isHovered} />
-                    {clientHireItems.map((item) => (
-                      <NavItem
-                        key={item.label}
-                        icon={item.icon}
-                        label={item.label}
-                        path={item.path}
-                        isActive={isActive(item.path)}
-                        isHovered={isHovered}
-                        onClick={() => setIsMobileOpen(false)}
-                      />
-                    ))}
-
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
-                    <SectionLabel label="Marketplace" icon="🛍️" isHovered={isHovered} />
-                    {clientMarketplaceItems.map((item) => (
-                      <NavItem
-                        key={item.label}
-                        icon={item.icon}
-                        label={item.label}
-                        path={item.path}
-                        isActive={isActive(item.path)}
-                        isHovered={isHovered}
-                        onClick={() => setIsMobileOpen(false)}
-                      />
-                    ))}
-                  </>
-                )}
-
-                {/* Admin Section */}
-                {user?.role === 'admin' && (
-                  <>
-                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
+      {/* Main Layout with Sidebar (Only show for authenticated users) */}
+      {isAuthenticated && (
+        <div className="flex">
+          {/* Sidebar */}
+          <aside
+            ref={navRef}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className={cn(
+              'fixed left-0 top-16 h-[calc(100vh-64px)] bg-white dark:bg-surface border-r border-gray-200 dark:border-gray-800',
+              'transition-all duration-300 flex flex-col overflow-hidden',
+              'z-30',
+              isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20',
+              isHovered && 'md:w-64'
+            )}
+          >
+            {/* Navigation Items */}
+            <div className="flex-1 overflow-y-auto py-4 space-y-1.5">
+              {/* Developer Sidebar */}
+              {isDeveloper && (
+                <>
+                  <SectionLabel label="Main" icon="🏠" isHovered={isHovered} />
+                  {developerMainItems.map((item) => (
                     <NavItem
-                      icon={Shield}
-                      label="Admin Panel"
-                      path="/admin"
-                      isActive={isActive('/admin')}
+                      key={item.path}
+                      icon={item.icon}
+                      label={item.label}
+                      path={item.path}
+                      isActive={isActive(item.path)}
                       isHovered={isHovered}
-                      variant="danger"
                       onClick={() => setIsMobileOpen(false)}
                     />
-                  </>
-                )}
-              </>
-            )}
-          </div>
+                  ))}
 
+                  <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
+                  <SectionLabel label="Work" icon="💼" isHovered={isHovered} />
+                  {developerWorkItems.map((item) => (
+                    <NavItem
+                      key={item.path}
+                      icon={item.icon}
+                      label={item.label}
+                      path={item.path}
+                      isActive={isActive(item.path)}
+                      isHovered={isHovered}
+                      onClick={() => setIsMobileOpen(false)}
+                    />
+                  ))}
 
-        </aside>
+                  <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
+                  <SectionLabel label="Marketplace" icon="🛒" isHovered={isHovered} />
+                  {developerMarketplaceItems.map((item) => (
+                    <NavItem
+                      key={item.label}
+                      icon={item.icon}
+                      label={item.label}
+                      path={item.path}
+                      badge={item.badge}
+                      isActive={isActive(item.path)}
+                      isHovered={isHovered}
+                      onClick={() => setIsMobileOpen(false)}
+                    />
+                  ))}
 
-        {/* Main Content Area */}
-        <main className={cn(
-          'flex-1 transition-all duration-300 flex flex-col min-h-[calc(100vh-64px)]',
-          isMobileOpen ? 'ml-0' : isHovered ? 'md:ml-64' : 'md:ml-20'
-        )}>
-          <div className={cn('flex-1', isChatRoute ? 'overflow-hidden' : 'overflow-auto')}>
-            <Outlet />
-          </div>
-          {!isChatRoute && <Footer />}
-        </main>
-      </div>
+                  <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
+                  <SectionLabel label="Money" icon="💰" isHovered={isHovered} />
+                  {developerMoneyItems.map((item) => (
+                    <NavItem
+                      key={item.label}
+                      icon={item.icon}
+                      label={item.label}
+                      path={item.path}
+                      isActive={isActive(item.path)}
+                      isHovered={isHovered}
+                      onClick={() => setIsMobileOpen(false)}
+                    />
+                  ))}
+                </>
+              )}
 
-      {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-20 md:hidden top-16"
-          onClick={() => setIsMobileOpen(false)}
-        />
+              {/* Client Sidebar */}
+              {isUser && (
+                <>
+                  <SectionLabel label="Main" icon="🏠" isHovered={isHovered} />
+                  {clientMainItems.map((item) => (
+                    <NavItem
+                      key={item.path}
+                      icon={item.icon}
+                      label={item.label}
+                      path={item.path}
+                      isActive={isActive(item.path)}
+                      isHovered={isHovered}
+                      onClick={() => setIsMobileOpen(false)}
+                    />
+                  ))}
+
+                  <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
+                  <SectionLabel label="Hire" icon="📝" isHovered={isHovered} />
+                  {clientHireItems.map((item) => (
+                    <NavItem
+                      key={item.label}
+                      icon={item.icon}
+                      label={item.label}
+                      path={item.path}
+                      isActive={isActive(item.path)}
+                      isHovered={isHovered}
+                      onClick={() => setIsMobileOpen(false)}
+                    />
+                  ))}
+
+                  <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
+                  <SectionLabel label="Marketplace" icon="🛍️" isHovered={isHovered} />
+                  {clientMarketplaceItems.map((item) => (
+                    <NavItem
+                      key={item.label}
+                      icon={item.icon}
+                      label={item.label}
+                      path={item.path}
+                      isActive={isActive(item.path)}
+                      isHovered={isHovered}
+                      onClick={() => setIsMobileOpen(false)}
+                    />
+                  ))}
+                </>
+              )}
+
+              {/* Admin Section */}
+              {user?.role === 'admin' && (
+                <>
+                  <div className="h-px bg-gray-200 dark:bg-gray-700 my-3 mx-2" />
+                  <NavItem
+                    icon={Shield}
+                    label="Admin Panel"
+                    path="/admin"
+                    isActive={isActive('/admin')}
+                    isHovered={isHovered}
+                    variant="danger"
+                    onClick={() => setIsMobileOpen(false)}
+                  />
+                </>
+              )}
+            </div>
+          </aside>
+
+          {/* Mobile Overlay */}
+          {isMobileOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-20 md:hidden top-16"
+              onClick={() => setIsMobileOpen(false)}
+            />
+          )}
+        </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -504,22 +486,22 @@ const SectionLabel = ({ label, icon, isHovered }) => (
 )
 
 // NavItem Component
-const NavItem = ({ 
-  icon: Icon, 
-  label, 
-  path, 
+const NavItem = ({
+  icon: Icon,
+  label,
+  path,
   badge,
-  isActive, 
-  isHovered, 
-  onClick, 
-  variant = 'default' 
+  isActive,
+  isHovered,
+  onClick,
+  variant = 'default',
 }) => (
   <Link
     to={path}
     onClick={onClick}
     className={cn(
       'flex items-center gap-4 px-4 py-3 mx-2 rounded-lg transition-all duration-300 group',
-      isActive 
+      isActive
         ? 'bg-primary-600 dark:bg-primary-700 text-white'
         : variant === 'danger'
           ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
@@ -528,7 +510,7 @@ const NavItem = ({
     title={label}
   >
     <Icon className="w-5 h-5 shrink-0" />
-    
+
     {isHovered && (
       <div className="flex items-center justify-between w-full min-w-0 gap-2">
         <span className="text-sm font-medium whitespace-nowrap transition-opacity duration-300 truncate">

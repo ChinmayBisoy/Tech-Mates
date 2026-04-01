@@ -5,7 +5,7 @@ import { useNotificationStore } from '@/store/notificationStore'
 import { useThemeStore } from '@/store/themeStore'
 import { 
   Menu, X, Moon, Sun, LogOut, Bell, Search, Settings, 
-  HelpCircle, Shield, LayoutDashboard, User, LogIn
+  HelpCircle, Shield, LayoutDashboard, User, LogIn, Zap
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
@@ -60,6 +60,7 @@ export function Navbar() {
           label: 'Earnings',
           href: '/payments/earnings',
         },
+        user?.role === 'developer' && { label: 'Recommended', href: '/recommendations' },
         user?.role === 'user' && {
           label: 'My Requirements',
           href: '/se-market/my',
